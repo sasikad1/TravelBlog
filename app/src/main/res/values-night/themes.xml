@@ -1,0 +1,34 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.TravelBlog" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    </style>
+
+    <style name="Theme.TravelBlog" parent="Base.Theme.TravelBlog" />
+
+    <!-- ========== REPLACE WITH THIS ========== -->
+    <!-- Keep original design, just remove title bar -->
+    <style name="Theme.TravelBlog.NoActionBar" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Remove action bar -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+
+        <!-- Keep status bar transparent to match gradient -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+
+        <!-- Make status bar icons dark (for light backgrounds) -->
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+    <!-- ======================================== -->
+
+</resources>
+
+
+<!--<resources xmlns:tools="http://schemas.android.com/tools">-->
+<!--    &lt;!&ndash; Base application theme. &ndash;&gt;-->
+<!--    <style name="Base.Theme.TravelBlog" parent="Theme.Material3.DayNight.NoActionBar">-->
+<!--        &lt;!&ndash; Customize your dark theme here. &ndash;&gt;-->
+<!--        &lt;!&ndash; <item name="colorPrimary">@color/my_dark_primary</item> &ndash;&gt;-->
+<!--    </style>-->
+<!--</resources>-->
