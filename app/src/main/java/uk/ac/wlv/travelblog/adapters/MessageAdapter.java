@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
 import uk.ac.wlv.travelblog.R;
@@ -37,41 +36,20 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         if (cursor != null && cursor.moveToPosition(position)) {
-            // Get column indices safely
             int idColumnIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_ID);
             int titleColumnIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_TITLE);
-            int contentColumnIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_CONTENT);
             int dateColumnIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_CREATED_DATE);
-            int imageColumnIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_IMAGE_PATH);
 
-            if (idColumnIndex >= 0 && titleColumnIndex >= 0 &&
-                    contentColumnIndex >= 0 && dateColumnIndex >= 0) {
-
+            if (idColumnIndex >= 0 && titleColumnIndex >= 0 && dateColumnIndex >= 0) {
                 final int messageId = cursor.getInt(idColumnIndex);
                 String title = cursor.getString(titleColumnIndex);
-                String content = cursor.getString(contentColumnIndex);
                 String createdDate = cursor.getString(dateColumnIndex);
-                String imagePath = imageColumnIndex >= 0 ? cursor.getString(imageColumnIndex) : null;
+
+                // Format date to show only date part (YYYY-MM-DD)
+                String formattedDate = formatDate(createdDate);
 
                 holder.tvTitle.setText(title);
-
-                // Truncate content if too long
-                if (content.length() > 100) {
-                    holder.tvContent.setText(content.substring(0, 100) + "...");
-                } else {
-                    holder.tvContent.setText(content);
-                }
-
-                holder.tvDate.setText(createdDate);
-
-                // Handle image
-                if (imagePath != null && !imagePath.isEmpty()) {
-                    holder.ivImage.setVisibility(View.VISIBLE);
-                    // TODO: Load image using Glide or other library
-                    // Glide.with(context).load(imagePath).into(holder.ivImage);
-                } else {
-                    holder.ivImage.setVisibility(View.GONE);
-                }
+                holder.tvDate.setText(formattedDate);
 
                 holder.itemView.setOnClickListener(v -> {
                     if (listener != null) {
@@ -89,6 +67,17 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         }
     }
 
+    private String formatDate(String dateTime) {
+        if (dateTime == null || dateTime.isEmpty()) {
+            return "No date";
+        }
+        // Format: "2024-04-01 14:30:00" -> "2024-04-01"
+        if (dateTime.contains(" ")) {
+            return dateTime.split(" ")[0];
+        }
+        return dateTime;
+    }
+
     @Override
     public int getItemCount() {
         return cursor != null ? cursor.getCount() : 0;
@@ -103,16 +92,12 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvContent, tvDate;
-        ImageView ivImage;
+        TextView tvTitle, tvDate;
 
         public ViewHolder(View itemView) {
             super(itemView);
             tvTitle = itemView.findViewById(R.id.tvTitle);
-            tvContent = itemView.findViewById(R.id.tvContent);
             tvDate = itemView.findViewById(R.id.tvDate);
-            ivImage = itemView.findViewById(R.id.ivImage);
         }
     }
 }
-
