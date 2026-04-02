@@ -9,7 +9,6 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import uk.ac.wlv.travelblog.R;
 import uk.ac.wlv.travelblog.database.DatabaseHelper;
@@ -39,24 +38,13 @@ public class LoginActivity extends AppCompatActivity {
 
         // Check if already logged in
         if (sharedPreferences.getBoolean("isLoggedIn", false)) {
-            navigateToDashboard();
+            navigateToMain();
             return;
         }
 
         initViews();
         setupClickListeners();
         loadSavedPreferences();
-
-        // ========== FIX: OnBackPressedDispatcher ==========
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                // Handle back press with animation
-                finish();
-                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
-            }
-        });
-        // =================================================
     }
 
     private void initViews() {
@@ -134,7 +122,7 @@ public class LoginActivity extends AppCompatActivity {
             savePreferences();
 
             Toast.makeText(this, "Welcome back!", Toast.LENGTH_SHORT).show();
-            navigateToDashboard();
+            navigateToMain();
         } else {
             showError("Invalid email or password");
         }
@@ -149,7 +137,7 @@ public class LoginActivity extends AppCompatActivity {
         editor.apply();
 
         Toast.makeText(this, "Continuing as Guest", Toast.LENGTH_SHORT).show();
-        navigateToDashboard();
+        navigateToMain();
     }
 
     private void showError(String message) {
@@ -158,8 +146,9 @@ public class LoginActivity extends AppCompatActivity {
         tvError.postDelayed(() -> tvError.setVisibility(android.view.View.GONE), 3000);
     }
 
-    private void navigateToDashboard() {
-        Intent intent = new Intent(LoginActivity.this, DashboardActivity.class);
+    // CHANGE THIS METHOD - Navigate to MainActivity instead of DashboardActivity
+    private void navigateToMain() {
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         overridePendingTransition(R.anim.fade_in, R.anim.fade_out);

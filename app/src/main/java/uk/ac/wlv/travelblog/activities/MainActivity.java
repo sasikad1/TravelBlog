@@ -1,94 +1,105 @@
 package uk.ac.wlv.travelblog.activities;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.os.Bundle;
-import android.widget.TextView;
+import android.view.Menu;
+import android.view.MenuItem;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import uk.ac.wlv.travelblog.R;
-import uk.ac.wlv.travelblog.adapters.MessageAdapter;
-import uk.ac.wlv.travelblog.database.DatabaseHelper;
+import uk.ac.wlv.travelblog.fragments.HomeFragment;
+import uk.ac.wlv.travelblog.fragments.SearchFragment;
+import uk.ac.wlv.travelblog.fragments.ProfileFragment;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView tvWelcome;
-    private RecyclerView recyclerView;
-    private FloatingActionButton fabAdd;
-    private DatabaseHelper dbHelper;
-    private MessageAdapter adapter;
-    private int userId;
-    private String username;
+    private BottomNavigationView bottomNavigation;
     private SharedPreferences sharedPreferences;
+    private int userId;
+    private boolean isGuest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        dbHelper = new DatabaseHelper(this);
+        // Setup toolbar
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
         sharedPreferences = getSharedPreferences("BlogAppPrefs", MODE_PRIVATE);
-
         userId = sharedPreferences.getInt("userId", -1);
-        username = sharedPreferences.getString("username", "");
+        isGuest = sharedPreferences.getBoolean("isGuest", false);
 
-        if (userId == -1) {
-            // Not logged in, go to login
+        // Check if logged in
+        if (userId == -1 && !isGuest) {
+            startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
         }
 
-        initViews();
-        setupRecyclerView();
-        loadMessages();
+        bottomNavigation = findViewById(R.id.bottomNavigation);
 
-        fabAdd.setOnClickListener(v -> {
-            // TODO: Open AddMessageActivity
-        });
-    }
-
-    private void initViews() {
-        tvWelcome = findViewById(R.id.tvWelcome);
-        recyclerView = findViewById(R.id.recyclerView);
-        fabAdd = findViewById(R.id.fabAdd);
-
-        tvWelcome.setText("Welcome, " + username + "!");
-    }
-
-    private void setupRecyclerView() {
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new MessageAdapter(this, null, new MessageAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(int position, int messageId) {
-                // TODO: Open ViewMessageActivity
-            }
-
-            @Override
-            public void onItemLongClick(int position, int messageId) {
-                // TODO: Show edit/delete options
-            }
-        });
-        recyclerView.setAdapter(adapter);
-    }
-
-    private void loadMessages() {
-        Cursor cursor = dbHelper.getAllMessagesForUser(userId);
-        adapter.swapCursor(cursor);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        loadMessages();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (dbHelper != null) {
-            // Database will be closed by adapter
+        // Load default fragment
+        if (savedInstanceState == null) {
+            loadFragment(new HomeFragment());
+            bottomNavigation.setSelectedItemId(R.id.nav_home);
         }
+
+        // Setup bottom navigation
+        bottomNavigation.setOnItemSelectedListener(item -> {
+            Fragment selectedFragment = null;
+
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_home) {
+                selectedFragment = new HomeFragment();
+            } else if (itemId == R.id.nav_search) {
+                selectedFragment = new SearchFragment();
+            } else if (itemId == R.id.nav_profile) {
+                selectedFragment = new ProfileFragment();
+            }
+
+            if (selectedFragment != null) {
+                loadFragment(selectedFragment);
+            }
+            return true;
+        });
+    }
+
+    private void loadFragment(Fragment fragment) {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragmentContainer, fragment)
+                .commit();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.action_logout) {
+            logout();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void logout() {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.clear();
+        editor.apply();
+
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }
