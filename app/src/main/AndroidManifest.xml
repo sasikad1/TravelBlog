@@ -50,6 +50,12 @@
             android:exported="false"
             android:theme="@style/Theme.TravelBlog.NoActionBar" />
 
+        <!-- Edit Post Activity -->
+        <activity
+            android:name=".activities.EditPostActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TravelBlog.NoActionBar" />
+
     </application>
 
 </manifest>

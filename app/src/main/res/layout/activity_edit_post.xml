@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@android:color/white">
+
+    <!-- Header (Fixed at top) -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:paddingBottom="8dp"
+        android:background="@android:color/white"
+        android:elevation="4dp">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_revert"
+            android:contentDescription="Back"
+            app:tint="#444444" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Edit Memory"
+            android:textColor="#1B5E20"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+    </RelativeLayout>
+
+    <!-- Scrollable Content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:paddingTop="0dp">
+
+            <!-- Add Photos Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add Photos"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp"
+                android:layout_marginTop="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnCamera"
+                    android:layout_width="0dp"
+                    android:layout_height="55dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/outline_button_bg"
+                    android:drawableStart="@android:drawable/ic_menu_camera"
+                    android:drawablePadding="8dp"
+                    android:text="Open Camera"
+                    android:textAllCaps="false"
+                    android:textColor="#1B5E20" />
+
+                <View
+                    android:layout_width="12dp"
+                    android:layout_height="wrap_content" />
+
+                <Button
+                    android:id="@+id/btnGallery"
+                    android:layout_width="0dp"
+                    android:layout_height="55dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/outline_button_bg"
+                    android:drawableStart="@android:drawable/ic_menu_gallery"
+                    android:drawablePadding="8dp"
+                    android:text="Add from Gallery"
+                    android:textAllCaps="false"
+                    android:textColor="#1B5E20" />
+            </LinearLayout>
+
+            <!-- Image Preview -->
+            <ImageView
+                android:id="@+id/ivImagePreview"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:scaleType="centerCrop"
+                android:background="#F0F0F0"
+                android:visibility="gone"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Location Input -->
+            <EditText
+                android:id="@+id/etLocation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Where did you go?"
+                android:padding="12dp"
+                android:background="@drawable/edittext_bg"
+                android:layout_marginBottom="16dp"
+                android:textSize="16sp" />
+
+            <!-- Story Input -->
+            <EditText
+                android:id="@+id/etStory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Tell your story..."
+                android:gravity="top"
+                android:padding="12dp"
+                android:background="@drawable/edittext_bg"
+                android:inputType="textMultiLine"
+                android:minLines="8"
+                android:textSize="16sp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Save Button -->
+            <Button
+                android:id="@+id/btnSave"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="32dp"
+                android:backgroundTint="#2E7D32"
+                android:text="Save Changes"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

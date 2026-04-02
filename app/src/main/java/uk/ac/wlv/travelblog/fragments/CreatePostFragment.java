@@ -1,14 +1,17 @@
 package uk.ac.wlv.travelblog.fragments;
 
 import android.Manifest;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
@@ -24,11 +27,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -52,7 +56,6 @@ public class CreatePostFragment extends Fragment {
     private int userId;
     private boolean isGuest;
     private String selectedImagePath = null;
-    private Uri cameraImageUri;
 
     public CreatePostFragment() {
         // Required empty public constructor
@@ -178,13 +181,19 @@ public class CreatePostFragment extends Fragment {
                     Toast.makeText(getContext(), "Photo captured", Toast.LENGTH_SHORT).show();
                 }
             } else if (requestCode == GALLERY_REQUEST_CODE && data != null) {
-                // Gallery - Get image URI
+                // Gallery - Get image URI and save permanently
                 Uri imageUri = data.getData();
                 if (imageUri != null) {
-                    selectedImagePath = imageUri.toString();
-                    if (ivImagePreview != null) {
-                        ivImagePreview.setImageURI(imageUri);
-                        ivImagePreview.setVisibility(View.VISIBLE);
+                    // Save gallery image to local file
+                    selectedImagePath = saveGalleryImageToFile(imageUri);
+                    if (selectedImagePath != null && ivImagePreview != null) {
+                        // Load and display the saved image
+                        File imgFile = new File(requireContext().getFilesDir(), selectedImagePath);
+                        if (imgFile.exists()) {
+                            Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                            ivImagePreview.setImageBitmap(bitmap);
+                            ivImagePreview.setVisibility(View.VISIBLE);
+                        }
                     }
                     Toast.makeText(getContext(), "Image selected", Toast.LENGTH_SHORT).show();
                 }
@@ -192,22 +201,51 @@ public class CreatePostFragment extends Fragment {
         }
     }
 
-    // ========== SAVE IMAGE TO FILE ==========
-    private String saveBitmapToFile(Bitmap bitmap) {
+    // ========== SAVE IMAGE FROM GALLERY TO LOCAL FILE ==========
+    private String saveGalleryImageToFile(Uri imageUri) {
         try {
             // Create filename with timestamp
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
             String filename = "IMG_" + timeStamp + ".jpg";
 
+            // Open input stream from content URI
+            InputStream inputStream = requireContext().getContentResolver().openInputStream(imageUri);
+            if (inputStream == null) return null;
+
             // Save to app's private storage
+            FileOutputStream fos = requireContext().openFileOutput(filename, Context.MODE_PRIVATE);
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) > 0) {
+                fos.write(buffer, 0, length);
+            }
+            fos.close();
+            inputStream.close();
+
+            Log.d(TAG, "Gallery image saved: " + filename);
+            return filename;
+
+        } catch (IOException e) {
+            Log.e(TAG, "Error saving gallery image: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // Save camera image to file
+    private String saveBitmapToFile(Bitmap bitmap) {
+        try {
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+            String filename = "IMG_" + timeStamp + ".jpg";
+
             FileOutputStream fos = requireContext().openFileOutput(filename, Context.MODE_PRIVATE);
             bitmap.compress(Bitmap.CompressFormat.JPEG, 85, fos);
             fos.close();
 
-            Log.d(TAG, "Image saved: " + filename);
-            return filename;  // Return just filename
+            Log.d(TAG, "Camera image saved: " + filename);
+            return filename;
         } catch (Exception e) {
-            Log.e(TAG, "Error saving image: " + e.getMessage());
+            Log.e(TAG, "Error saving camera image: " + e.getMessage());
             e.printStackTrace();
             return null;
         }
@@ -240,7 +278,7 @@ public class CreatePostFragment extends Fragment {
             return;
         }
 
-        // Save to database with image path
+        // Save to database with image path (filename only)
         long result = dbHelper.addMessage(userId, location, story, selectedImagePath);
 
         if (result != -1) {
