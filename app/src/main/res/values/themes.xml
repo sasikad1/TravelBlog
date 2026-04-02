@@ -1,24 +1,18 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme with MaterialComponents -->
     <style name="Base.Theme.TravelBlog" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Primary brand color -->
         <item name="colorPrimary">#2E7D32</item>
         <item name="colorPrimaryVariant">#1B5E20</item>
         <item name="colorOnPrimary">@android:color/white</item>
-
-        <!-- Secondary brand color -->
         <item name="colorSecondary">#FFC107</item>
         <item name="colorSecondaryVariant">#FFA000</item>
         <item name="colorOnSecondary">@android:color/black</item>
-
-        <!-- Status bar color -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
 
     <style name="Theme.TravelBlog" parent="Base.Theme.TravelBlog" />
 
-    <!-- No Action Bar Theme -->
     <style name="Theme.TravelBlog.NoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">#2E7D32</item>
         <item name="colorPrimaryVariant">#1B5E20</item>
@@ -27,7 +21,6 @@
         <item name="android:windowLightStatusBar">true</item>
     </style>
 
-    <!-- Filter Tag Style -->
     <style name="FilterTag" parent="Widget.AppCompat.TextView">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
@@ -43,7 +36,6 @@
         <item name="android:focusable">true</item>
     </style>
 
-    <!-- Circle Image Style -->
     <style name="CircleImage">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>

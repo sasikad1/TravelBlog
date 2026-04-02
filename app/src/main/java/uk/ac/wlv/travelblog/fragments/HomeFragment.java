@@ -3,6 +3,7 @@ package uk.ac.wlv.travelblog.fragments;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -43,6 +45,8 @@ public class HomeFragment extends Fragment {
         userId = sharedPreferences.getInt("userId", -1);
         userEmail = sharedPreferences.getString("userEmail", "");
         isGuest = sharedPreferences.getBoolean("isGuest", false);
+
+        Log.d("HomeFragment", "onCreate: userId=" + userId);
     }
 
     @Nullable
@@ -60,13 +64,36 @@ public class HomeFragment extends Fragment {
         setupRecyclerView();
         loadMessages();
 
+        // ========== FIXED FAB CLICK LISTENER ==========
         fabAdd.setOnClickListener(v -> {
+            Log.d("HomeFragment", "FAB clicked - isGuest=" + isGuest);
+
             if (isGuest) {
                 Toast.makeText(getContext(), "Please sign in to add memories", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(getContext(), "Add new memory (Coming soon)", Toast.LENGTH_SHORT).show();
+                try {
+                    // Create new instance
+                    CreatePostFragment createPostFragment = new CreatePostFragment();
+
+                    // Use getParentFragmentManager() to replace in activity
+                    FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
+
+                    // Replace the fragment container with CreatePostFragment
+                    transaction.replace(android.R.id.content, createPostFragment);
+                    transaction.addToBackStack("create_post");
+                    transaction.commit();
+
+                    Log.d("HomeFragment", "Transaction committed");
+                    Toast.makeText(getContext(), "Opening create memory...", Toast.LENGTH_SHORT).show();
+
+                } catch (Exception e) {
+                    Log.e("HomeFragment", "Error: " + e.getMessage());
+                    e.printStackTrace();
+                    Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                }
             }
         });
+        // =============================================
     }
 
     private void initViews(View view) {

@@ -100,7 +100,7 @@
 
     </LinearLayout>
 
-    <!-- Floating Action Button -->
+    <!-- Floating Action Button - MAKE SURE ID IS "fabAdd" -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAdd"
         android:layout_width="wrap_content"

@@ -70,6 +70,17 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // In MainActivity.java, add this method for back button handling
+
+    @Override
+    public void onBackPressed() {
+        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            getSupportFragmentManager().popBackStack();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
     private void loadFragment(Fragment fragment) {
         getSupportFragmentManager()
                 .beginTransaction()
