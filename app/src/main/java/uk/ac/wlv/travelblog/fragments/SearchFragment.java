@@ -1,7 +1,6 @@
 package uk.ac.wlv.travelblog.fragments;
 
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -16,9 +15,12 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import java.util.ArrayList;
+import java.util.List;
 import uk.ac.wlv.travelblog.R;
 import uk.ac.wlv.travelblog.adapters.MessageAdapter;
 import uk.ac.wlv.travelblog.database.DatabaseHelper;
+import uk.ac.wlv.travelblog.models.Message;
 
 public class SearchFragment extends Fragment {
 
@@ -70,7 +72,7 @@ public class SearchFragment extends Fragment {
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new MessageAdapter(getContext(), null, new MessageAdapter.OnItemClickListener() {
+        adapter = new MessageAdapter(getContext(), new ArrayList<>(), new MessageAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position, int messageId) {
                 if (isGuest) {
@@ -128,15 +130,17 @@ public class SearchFragment extends Fragment {
 
     private void performSearch(String query) {
         if (!isGuest && userId != -1) {
-            Cursor cursor;
+            List<Message> messages;
             if (query.isEmpty()) {
-                cursor = dbHelper.getAllMessagesForUser(userId);
+                messages = dbHelper.getAllMessagesAsList(userId);
             } else {
-                cursor = dbHelper.searchMessages(userId, query);
+                messages = dbHelper.searchMessagesAsList(userId, query);
             }
-            adapter.swapCursor(cursor);
 
-            int count = cursor != null ? cursor.getCount() : 0;
+            // Use updateMessages instead of swapCursor
+            adapter.updateMessages(messages);
+
+            int count = messages.size();
             if (count == 0 && !query.isEmpty()) {
                 tvNoResults.setVisibility(View.VISIBLE);
                 recyclerView.setVisibility(View.GONE);
@@ -151,8 +155,8 @@ public class SearchFragment extends Fragment {
             tvNoResults.setText("Sign in to search your memories");
         } else {
             // Load all messages if logged in but no query
-            Cursor cursor = dbHelper.getAllMessagesForUser(userId);
-            adapter.swapCursor(cursor);
+            List<Message> messages = dbHelper.getAllMessagesAsList(userId);
+            adapter.updateMessages(messages);
             tvNoResults.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
         }

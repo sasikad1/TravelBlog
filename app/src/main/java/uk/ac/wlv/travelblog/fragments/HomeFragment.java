@@ -1,7 +1,6 @@
 package uk.ac.wlv.travelblog.fragments;
 
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,9 +15,12 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import java.util.ArrayList;
+import java.util.List;
 import uk.ac.wlv.travelblog.R;
 import uk.ac.wlv.travelblog.adapters.MessageAdapter;
 import uk.ac.wlv.travelblog.database.DatabaseHelper;
+import uk.ac.wlv.travelblog.models.Message;
 
 public class HomeFragment extends Fragment {
 
@@ -64,7 +66,6 @@ public class HomeFragment extends Fragment {
         setupRecyclerView();
         loadMessages();
 
-        // ========== FIXED FAB CLICK LISTENER ==========
         fabAdd.setOnClickListener(v -> {
             Log.d("HomeFragment", "FAB clicked - isGuest=" + isGuest);
 
@@ -72,20 +73,19 @@ public class HomeFragment extends Fragment {
                 Toast.makeText(getContext(), "Please sign in to add memories", Toast.LENGTH_SHORT).show();
             } else {
                 try {
-                    // Create new instance
                     CreatePostFragment createPostFragment = new CreatePostFragment();
-
-                    // Use getParentFragmentManager() to replace in activity
                     FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
-
-                    // Replace the fragment container with CreatePostFragment
-                    transaction.replace(android.R.id.content, createPostFragment);
+                    transaction.setCustomAnimations(
+                            R.anim.slide_in_right,
+                            R.anim.slide_out_left,
+                            R.anim.slide_in_left,
+                            R.anim.slide_out_right
+                    );
+                    transaction.replace(R.id.fragmentContainer, createPostFragment);
                     transaction.addToBackStack("create_post");
                     transaction.commit();
-
                     Log.d("HomeFragment", "Transaction committed");
                     Toast.makeText(getContext(), "Opening create memory...", Toast.LENGTH_SHORT).show();
-
                 } catch (Exception e) {
                     Log.e("HomeFragment", "Error: " + e.getMessage());
                     e.printStackTrace();
@@ -93,7 +93,6 @@ public class HomeFragment extends Fragment {
                 }
             }
         });
-        // =============================================
     }
 
     private void initViews(View view) {
@@ -113,13 +112,37 @@ public class HomeFragment extends Fragment {
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new MessageAdapter(getContext(), null, new MessageAdapter.OnItemClickListener() {
+        adapter = new MessageAdapter(getContext(), new ArrayList<>(), new MessageAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position, int messageId) {
                 if (isGuest) {
                     Toast.makeText(getContext(), "Sign in to view memory", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(getContext(), "Opening memory: " + messageId, Toast.LENGTH_SHORT).show();
+                    // ========== OPEN POST DETAIL FRAGMENT ==========
+                    // Get the message object
+                    List<Message> messages = dbHelper.getAllMessagesAsList(userId);
+                    if (position < messages.size()) {
+                        Message selectedMessage = messages.get(position);
+
+                        // Create PostDetailFragment with message data
+                        PostDetailFragment postDetailFragment = PostDetailFragment.newInstance(selectedMessage.getId());
+
+                        FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
+                        transaction.setCustomAnimations(
+                                R.anim.slide_in_right,
+                                R.anim.slide_out_left,
+                                R.anim.slide_in_left,
+                                R.anim.slide_out_right
+                        );
+                        transaction.replace(R.id.fragmentContainer, postDetailFragment);
+                        transaction.addToBackStack("post_detail");
+                        transaction.commit();
+
+                        Toast.makeText(getContext(), "Opening: " + selectedMessage.getTitle(), Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getContext(), "Error opening memory", Toast.LENGTH_SHORT).show();
+                    }
+                    // ==============================================
                 }
             }
 
@@ -135,10 +158,10 @@ public class HomeFragment extends Fragment {
 
     private void loadMessages() {
         if (!isGuest && userId != -1) {
-            Cursor cursor = dbHelper.getAllMessagesForUser(userId);
-            adapter.swapCursor(cursor);
+            List<Message> messages = dbHelper.getAllMessagesAsList(userId);
+            adapter.updateMessages(messages);
 
-            int count = cursor != null ? cursor.getCount() : 0;
+            int count = messages.size();
             if (count == 0) {
                 tvStats.setText("No memories yet");
             } else if (count == 1) {
@@ -147,7 +170,7 @@ public class HomeFragment extends Fragment {
                 tvStats.setText(count + " memories saved");
             }
         } else {
-            adapter.swapCursor(null);
+            adapter.updateMessages(new ArrayList<>());
             tvStats.setText("Sign in to save memories");
         }
     }
