@@ -1,5 +1,6 @@
 package uk.ac.wlv.travelblog.fragments;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
@@ -18,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 import uk.ac.wlv.travelblog.R;
+import uk.ac.wlv.travelblog.activities.PostDetailActivity;
 import uk.ac.wlv.travelblog.adapters.MessageAdapter;
 import uk.ac.wlv.travelblog.database.DatabaseHelper;
 import uk.ac.wlv.travelblog.models.Message;
@@ -78,7 +80,10 @@ public class SearchFragment extends Fragment {
                 if (isGuest) {
                     Toast.makeText(getContext(), "Sign in to view memory", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(getContext(), "Opening memory: " + messageId, Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(getContext(), PostDetailActivity.class);
+                    intent.putExtra(PostDetailActivity.EXTRA_MESSAGE_ID, messageId);
+                    startActivity(intent);
+                    requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
                 }
             }
 
@@ -88,6 +93,14 @@ public class SearchFragment extends Fragment {
                     Toast.makeText(getContext(), "Options for memory: " + messageId, Toast.LENGTH_SHORT).show();
                 }
             }
+
+            // ========== ADD THIS MISSING METHOD ==========
+            @Override
+            public void onSelectionChanged(int selectedCount) {
+                // Search fragment doesn't need selection mode
+                // This is required by the interface but we can leave it empty
+            }
+            // =============================================
         });
         recyclerView.setAdapter(adapter);
     }
@@ -137,7 +150,6 @@ public class SearchFragment extends Fragment {
                 messages = dbHelper.searchMessagesAsList(userId, query);
             }
 
-            // Use updateMessages instead of swapCursor
             adapter.updateMessages(messages);
 
             int count = messages.size();
@@ -145,6 +157,10 @@ public class SearchFragment extends Fragment {
                 tvNoResults.setVisibility(View.VISIBLE);
                 recyclerView.setVisibility(View.GONE);
                 tvNoResults.setText("No memories found for \"" + query + "\"");
+            } else if (count == 0) {
+                tvNoResults.setVisibility(View.VISIBLE);
+                recyclerView.setVisibility(View.GONE);
+                tvNoResults.setText("No memories yet.");
             } else {
                 tvNoResults.setVisibility(View.GONE);
                 recyclerView.setVisibility(View.VISIBLE);
@@ -154,7 +170,6 @@ public class SearchFragment extends Fragment {
             recyclerView.setVisibility(View.GONE);
             tvNoResults.setText("Sign in to search your memories");
         } else {
-            // Load all messages if logged in but no query
             List<Message> messages = dbHelper.getAllMessagesAsList(userId);
             adapter.updateMessages(messages);
             tvNoResults.setVisibility(View.GONE);
