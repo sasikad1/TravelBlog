@@ -171,7 +171,6 @@
                     android:padding="12dp" />
             </LinearLayout>
 
-            <!-- Changed from MaterialButton to normal Button -->
             <Button
                 android:id="@+id/btnUploadStatus"
                 android:layout_width="180dp"

@@ -1,5 +1,6 @@
 package uk.ac.wlv.travelblog.fragments;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,6 +19,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.List;
 import uk.ac.wlv.travelblog.R;
+import uk.ac.wlv.travelblog.activities.PostDetailActivity;
 import uk.ac.wlv.travelblog.adapters.MessageAdapter;
 import uk.ac.wlv.travelblog.database.DatabaseHelper;
 import uk.ac.wlv.travelblog.models.Message;
@@ -118,30 +120,13 @@ public class HomeFragment extends Fragment {
                 if (isGuest) {
                     Toast.makeText(getContext(), "Sign in to view memory", Toast.LENGTH_SHORT).show();
                 } else {
-                    // ========== OPEN POST DETAIL FRAGMENT ==========
-                    // Get the message object
-                    List<Message> messages = dbHelper.getAllMessagesAsList(userId);
-                    if (position < messages.size()) {
-                        Message selectedMessage = messages.get(position);
+                    // ========== OPEN POST DETAIL ACTIVITY ==========
+                    Intent intent = new Intent(getContext(), PostDetailActivity.class);
+                    intent.putExtra(PostDetailActivity.EXTRA_MESSAGE_ID, messageId);
+                    startActivity(intent);
 
-                        // Create PostDetailFragment with message data
-                        PostDetailFragment postDetailFragment = PostDetailFragment.newInstance(selectedMessage.getId());
-
-                        FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
-                        transaction.setCustomAnimations(
-                                R.anim.slide_in_right,
-                                R.anim.slide_out_left,
-                                R.anim.slide_in_left,
-                                R.anim.slide_out_right
-                        );
-                        transaction.replace(R.id.fragmentContainer, postDetailFragment);
-                        transaction.addToBackStack("post_detail");
-                        transaction.commit();
-
-                        Toast.makeText(getContext(), "Opening: " + selectedMessage.getTitle(), Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(getContext(), "Error opening memory", Toast.LENGTH_SHORT).show();
-                    }
+                    // Add transition animation
+                    requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
                     // ==============================================
                 }
             }

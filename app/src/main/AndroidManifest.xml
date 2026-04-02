@@ -45,6 +45,11 @@
             android:exported="false"
             android:theme="@style/Theme.TravelBlog.NoActionBar" />
 
+        <activity
+            android:name=".activities.PostDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TravelBlog.NoActionBar" />
+
     </application>
 
 </manifest>

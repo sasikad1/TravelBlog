@@ -1,6 +1,7 @@
 package uk.ac.wlv.travelblog.fragments;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -23,7 +24,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import uk.ac.wlv.travelblog.R;
 import uk.ac.wlv.travelblog.database.DatabaseHelper;
 
@@ -44,6 +52,7 @@ public class CreatePostFragment extends Fragment {
     private int userId;
     private boolean isGuest;
     private String selectedImagePath = null;
+    private Uri cameraImageUri;
 
     public CreatePostFragment() {
         // Required empty public constructor
@@ -156,8 +165,9 @@ public class CreatePostFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (resultCode == getActivity().RESULT_OK && data != null) {
-            if (requestCode == CAMERA_REQUEST_CODE) {
+        if (resultCode == getActivity().RESULT_OK) {
+            if (requestCode == CAMERA_REQUEST_CODE && data != null) {
+                // Camera - Get thumbnail image
                 Bitmap imageBitmap = (Bitmap) data.getExtras().get("data");
                 if (imageBitmap != null) {
                     selectedImagePath = saveBitmapToFile(imageBitmap);
@@ -167,7 +177,8 @@ public class CreatePostFragment extends Fragment {
                     }
                     Toast.makeText(getContext(), "Photo captured", Toast.LENGTH_SHORT).show();
                 }
-            } else if (requestCode == GALLERY_REQUEST_CODE) {
+            } else if (requestCode == GALLERY_REQUEST_CODE && data != null) {
+                // Gallery - Get image URI
                 Uri imageUri = data.getData();
                 if (imageUri != null) {
                     selectedImagePath = imageUri.toString();
@@ -181,18 +192,27 @@ public class CreatePostFragment extends Fragment {
         }
     }
 
+    // ========== SAVE IMAGE TO FILE ==========
     private String saveBitmapToFile(Bitmap bitmap) {
         try {
-            String filename = "img_" + System.currentTimeMillis() + ".jpg";
-            java.io.FileOutputStream fos = requireContext().openFileOutput(filename, 0);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, fos);
+            // Create filename with timestamp
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+            String filename = "IMG_" + timeStamp + ".jpg";
+
+            // Save to app's private storage
+            FileOutputStream fos = requireContext().openFileOutput(filename, Context.MODE_PRIVATE);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 85, fos);
             fos.close();
-            return filename;
+
+            Log.d(TAG, "Image saved: " + filename);
+            return filename;  // Return just filename
         } catch (Exception e) {
+            Log.e(TAG, "Error saving image: " + e.getMessage());
             e.printStackTrace();
             return null;
         }
     }
+    // ========================================
 
     private void savePost() {
         if (isGuest) {
@@ -220,6 +240,7 @@ public class CreatePostFragment extends Fragment {
             return;
         }
 
+        // Save to database with image path
         long result = dbHelper.addMessage(userId, location, story, selectedImagePath);
 
         if (result != -1) {

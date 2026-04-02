@@ -1,7 +1,10 @@
 package uk.ac.wlv.travelblog.activities;
 
-import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -9,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import java.io.File;
 import uk.ac.wlv.travelblog.R;
 import uk.ac.wlv.travelblog.database.DatabaseHelper;
 import uk.ac.wlv.travelblog.models.Message;
@@ -79,15 +83,54 @@ public class PostDetailActivity extends AppCompatActivity {
             // Set SQLite ID
             tvSqliteId.setText("SQLite ID: " + message.getId());
 
-            // Load image if exists
-            if (message.getImagePath() != null && !message.getImagePath().isEmpty()) {
-                // Load image using Glide or set directly
-            }
+            // ========== LOAD IMAGE ==========
+            loadImage(message.getImagePath());
+            // ================================
         } else {
             Toast.makeText(this, "Post not found", Toast.LENGTH_SHORT).show();
             finish();
         }
     }
+
+    // ========== METHOD TO LOAD IMAGE ==========
+    private void loadImage(String imagePath) {
+        if (imagePath != null && !imagePath.isEmpty()) {
+            try {
+                // Check if it's a file path (from camera)
+                if (imagePath.startsWith("/") || imagePath.contains(".jpg")) {
+                    File imgFile = new File(getFilesDir(), imagePath);
+                    if (imgFile.exists()) {
+                        Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                        ivPostImage.setImageBitmap(bitmap);
+                        ivPostImage.setVisibility(View.VISIBLE);
+                        return;
+                    }
+                }
+
+                // Check if it's a content URI (from gallery)
+                if (imagePath.startsWith("content://")) {
+                    Uri imageUri = Uri.parse(imagePath);
+                    ivPostImage.setImageURI(imageUri);
+                    ivPostImage.setVisibility(View.VISIBLE);
+                    return;
+                }
+
+                // If image not found, show placeholder
+                ivPostImage.setImageResource(android.R.drawable.ic_menu_gallery);
+                ivPostImage.setVisibility(View.VISIBLE);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                ivPostImage.setImageResource(android.R.drawable.ic_menu_gallery);
+                ivPostImage.setVisibility(View.VISIBLE);
+            }
+        } else {
+            // No image, hide or show placeholder
+            ivPostImage.setImageResource(android.R.drawable.ic_menu_gallery);
+            ivPostImage.setVisibility(View.VISIBLE);
+        }
+    }
+    // ========================================
 
     private String formatDate(String dateTime) {
         if (dateTime == null || dateTime.isEmpty()) {
@@ -133,10 +176,10 @@ public class PostDetailActivity extends AppCompatActivity {
     private void sharePost() {
         if (message != null) {
             String shareText = message.getTitle() + "\n\n" + message.getContent() + "\n\n- WanderLog";
-            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            android.content.Intent shareIntent = new android.content.Intent(android.content.Intent.ACTION_SEND);
             shareIntent.setType("text/plain");
-            shareIntent.putExtra(Intent.EXTRA_TEXT, shareText);
-            startActivity(Intent.createChooser(shareIntent, "Share via"));
+            shareIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareText);
+            startActivity(android.content.Intent.createChooser(shareIntent, "Share via"));
         }
     }
 
