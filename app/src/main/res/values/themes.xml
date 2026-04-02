@@ -21,6 +21,7 @@
         <item name="android:windowLightStatusBar">true</item>
     </style>
 
+    <!-- Filter Tag Style -->
     <style name="FilterTag" parent="Widget.AppCompat.TextView">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
@@ -36,10 +37,9 @@
         <item name="android:focusable">true</item>
     </style>
 
+    <!-- Circle Image Style -->
     <style name="CircleImage">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
-
-
 </resources>

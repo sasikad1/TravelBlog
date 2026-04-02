@@ -1,9 +1,12 @@
 package uk.ac.wlv.travelblog.fragments;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
@@ -18,6 +21,8 @@ import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import uk.ac.wlv.travelblog.R;
 import uk.ac.wlv.travelblog.database.DatabaseHelper;
@@ -25,6 +30,9 @@ import uk.ac.wlv.travelblog.database.DatabaseHelper;
 public class CreatePostFragment extends Fragment {
 
     private static final String TAG = "CreatePostFragment";
+    private static final int CAMERA_PERMISSION_CODE = 200;
+    private static final int CAMERA_REQUEST_CODE = 100;
+    private static final int GALLERY_REQUEST_CODE = 101;
 
     // UI Components
     private ImageButton btnClose, btnSaveIcon;
@@ -36,9 +44,6 @@ public class CreatePostFragment extends Fragment {
     private int userId;
     private boolean isGuest;
     private String selectedImagePath = null;
-
-    private static final int CAMERA_REQUEST_CODE = 100;
-    private static final int GALLERY_REQUEST_CODE = 101;
 
     public CreatePostFragment() {
         // Required empty public constructor
@@ -96,10 +101,24 @@ public class CreatePostFragment extends Fragment {
         btnSaveIcon.setOnClickListener(v -> savePost());
         btnSaveSQLite.setOnClickListener(v -> savePost());
 
-        btnCamera.setOnClickListener(v -> openCamera());
+        btnCamera.setOnClickListener(v -> checkCameraPermissionAndOpen());
         btnGallery.setOnClickListener(v -> openGallery());
 
         btnDeleteDraft.setOnClickListener(v -> clearForm());
+    }
+
+    // ========== PERMISSION HANDLING ==========
+    private void checkCameraPermissionAndOpen() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
+            } else {
+                openCamera();
+            }
+        } else {
+            openCamera();
+        }
     }
 
     private void openCamera() {
@@ -115,6 +134,23 @@ public class CreatePostFragment extends Fragment {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent, GALLERY_REQUEST_CODE);
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == CAMERA_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                openCamera();
+            } else {
+                Toast.makeText(getContext(),
+                        "Camera permission is required to take photos",
+                        Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+    // ========================================
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
