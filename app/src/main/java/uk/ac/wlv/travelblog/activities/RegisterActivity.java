@@ -3,6 +3,7 @@ package uk.ac.wlv.travelblog.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -22,7 +23,6 @@ public class RegisterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Remove title bar
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
@@ -33,6 +33,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         initViews();
         setupClickListeners();
+        setupFieldListeners();
     }
 
     private void initViews() {
@@ -55,42 +56,221 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
-    private void registerUser() {
-        tvError.setVisibility(android.view.View.GONE);
+    private void setupFieldListeners() {
+        // Clear errors when user starts typing
+        etEmail.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) clearError(etEmail);
+        });
 
-        String email = etEmail.getText().toString().trim();
+        etPassword.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) clearError(etPassword);
+        });
+
+        etConfirmPassword.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) clearError(etConfirmPassword);
+        });
+
+        // Real-time validation for email
+        etEmail.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() > 0) {
+                    clearError(etEmail);
+                    hideError();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        });
+
+        // Real-time validation for password
+        etPassword.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() > 0) {
+                    clearError(etPassword);
+                    hideError();
+                    // Check password match when user types
+                    checkPasswordMatch();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        });
+
+        // Real-time validation for confirm password
+        etConfirmPassword.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() > 0) {
+                    checkPasswordMatch();
+                } else {
+                    clearError(etConfirmPassword);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        });
+    }
+
+    private void checkPasswordMatch() {
         String password = etPassword.getText().toString().trim();
         String confirmPassword = etConfirmPassword.getText().toString().trim();
 
+        if (!TextUtils.isEmpty(password) && !TextUtils.isEmpty(confirmPassword)) {
+            if (!password.equals(confirmPassword)) {
+                etConfirmPassword.setError("Passwords do not match");
+            } else {
+                etConfirmPassword.setError(null);
+            }
+        }
+    }
+
+    // ========== COMPLETE VALIDATION ==========
+
+    private boolean validateEmail() {
+        String email = etEmail.getText().toString().trim();
+
         if (TextUtils.isEmpty(email)) {
-            showError("Email required");
-            return;
+            showFieldError(etEmail, "Email address is required");
+            return false;
+        }
+
+        if (email.length() > 100) {
+            showFieldError(etEmail, "Email address is too long (max 100 characters)");
+            return false;
         }
 
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            showError("Enter valid email");
-            return;
+            showFieldError(etEmail, "Please enter a valid email address (e.g., name@example.com)");
+            return false;
         }
 
-        if (TextUtils.isEmpty(password)) {
-            showError("Password required");
-            return;
+        if (!email.contains("@") || !email.contains(".")) {
+            showFieldError(etEmail, "Email must contain '@' and '.'");
+            return false;
         }
 
-        if (password.length() < 4) {
-            showError("Password must be at least 4 characters");
-            return;
-        }
-
-        if (!password.equals(confirmPassword)) {
-            showError("Passwords do not match");
-            return;
+        String domain = email.substring(email.indexOf("@") + 1);
+        if (domain.length() < 3) {
+            showFieldError(etEmail, "Invalid email domain");
+            return false;
         }
 
         if (dbHelper.isEmailExists(email)) {
-            showError("Email already registered");
-            return;
+            showFieldError(etEmail, "Email already registered. Please login or use another email.");
+            return false;
         }
+
+        return true;
+    }
+
+    private boolean validatePassword() {
+        String password = etPassword.getText().toString().trim();
+
+        if (TextUtils.isEmpty(password)) {
+            showFieldError(etPassword, "Password is required");
+            return false;
+        }
+
+        if (password.length() < 4) {
+            showFieldError(etPassword, "Password must be at least 4 characters");
+            return false;
+        }
+
+        if (password.length() > 50) {
+            showFieldError(etPassword, "Password is too long (max 50 characters)");
+            return false;
+        }
+
+        if (!password.matches("^[a-zA-Z0-9@#$%^&+=!._-]+$")) {
+            showFieldError(etPassword, "Password contains invalid characters");
+            return false;
+        }
+
+        // Check password strength (optional)
+        if (!password.matches(".*[A-Z].*")) {
+            showFieldError(etPassword, "Password should contain at least one uppercase letter");
+            return false;
+        }
+
+        if (!password.matches(".*[0-9].*")) {
+            showFieldError(etPassword, "Password should contain at least one number");
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean validateConfirmPassword() {
+        String password = etPassword.getText().toString().trim();
+        String confirmPassword = etConfirmPassword.getText().toString().trim();
+
+        if (TextUtils.isEmpty(confirmPassword)) {
+            showFieldError(etConfirmPassword, "Please confirm your password");
+            return false;
+        }
+
+        if (!password.equals(confirmPassword)) {
+            showFieldError(etConfirmPassword, "Passwords do not match");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void showFieldError(EditText field, String message) {
+        field.setError(message);
+        field.requestFocus();
+        showError(message);
+    }
+
+    private void clearError(EditText field) {
+        field.setError(null);
+    }
+
+    private void hideError() {
+        tvError.setVisibility(View.GONE);
+    }
+
+    private void showError(String message) {
+        tvError.setText(message);
+        tvError.setVisibility(View.VISIBLE);
+
+        tvError.postDelayed(() -> {
+            if (tvError != null && tvError.getVisibility() == View.VISIBLE) {
+                tvError.setVisibility(View.GONE);
+            }
+        }, 5000);
+    }
+
+    // ========== REGISTER USER ==========
+
+    private void registerUser() {
+        hideError();
+        clearError(etEmail);
+        clearError(etPassword);
+        clearError(etConfirmPassword);
+
+        // Validate all fields
+        if (!validateEmail()) return;
+        if (!validatePassword()) return;
+        if (!validateConfirmPassword()) return;
+
+        String email = etEmail.getText().toString().trim();
+        String password = etPassword.getText().toString().trim();
 
         long result = dbHelper.registerUser(email, password);
 
@@ -104,11 +284,5 @@ public class RegisterActivity extends AppCompatActivity {
         } else {
             showError("Registration failed. Please try again.");
         }
-    }
-
-    private void showError(String message) {
-        tvError.setText(message);
-        tvError.setVisibility(android.view.View.VISIBLE);
-        tvError.postDelayed(() -> tvError.setVisibility(android.view.View.GONE), 3000);
     }
 }

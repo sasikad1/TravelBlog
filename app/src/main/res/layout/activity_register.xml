@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="Join WanderLog"
-        android:textColor="#2E7D32"
+        android:textColor="#386A39"
         android:textSize="32sp"
         android:textStyle="bold" />
 
@@ -43,51 +43,51 @@
             android:orientation="vertical"
             android:padding="24dp">
 
-            <!-- Email EditText -->
+            <!-- Email EditText with rounded corners -->
             <EditText
                 android:id="@+id/etEmail"
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
-                android:background="#F0F0F0"
-                android:drawableStart="@android:drawable/ic_dialog_email"
+                android:background="@drawable/rounded_edittext"
+                android:drawableStart="@drawable/ic_email"
                 android:drawablePadding="10dp"
                 android:hint="Email"
                 android:inputType="textEmailAddress"
                 android:padding="12dp" />
 
-            <!-- Password EditText -->
+            <!-- Password EditText with rounded corners -->
             <EditText
                 android:id="@+id/etPassword"
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
                 android:layout_marginTop="12dp"
-                android:background="#F0F0F0"
-                android:drawableStart="@android:drawable/ic_lock_idle_lock"
+                android:background="@drawable/rounded_edittext"
+                android:drawableStart="@drawable/ic_lock"
                 android:drawablePadding="10dp"
                 android:hint="Password"
                 android:inputType="textPassword"
                 android:padding="12dp" />
 
-            <!-- Confirm Password EditText -->
+            <!-- Confirm Password EditText with rounded corners -->
             <EditText
                 android:id="@+id/etConfirmPassword"
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
                 android:layout_marginTop="12dp"
-                android:background="#F0F0F0"
-                android:drawableStart="@android:drawable/ic_lock_idle_lock"
+                android:background="@drawable/rounded_edittext"
+                android:drawableStart="@drawable/ic_lock"
                 android:drawablePadding="10dp"
                 android:hint="Confirm Password"
                 android:inputType="textPassword"
                 android:padding="12dp" />
 
-            <!-- Sign Up Button -->
+            <!-- Sign Up Button with rounded corners -->
             <Button
                 android:id="@+id/btnSignUp"
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
                 android:layout_marginTop="24dp"
-                android:backgroundTint="#2E7D32"
+                android:background="@drawable/rounded_button_green"
                 android:text="Sign Up"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF" />
@@ -100,16 +100,15 @@
                 android:layout_marginBottom="16dp"
                 android:background="#E0E0E0" />
 
-            <!-- Back to Login Button -->
+            <!-- Back to Login Button with rounded corners -->
             <Button
                 android:id="@+id/btnBackToLogin"
-                style="?android:attr/borderlessButtonStyle"
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
-                android:background="#F5F5F5"
+                android:background="@drawable/rounded_button_light"
                 android:text="Back to Sign In"
                 android:textAllCaps="false"
-                android:textColor="#2E7D32"
+                android:textColor="#386A39"
                 android:textSize="14sp" />
 
         </LinearLayout>
