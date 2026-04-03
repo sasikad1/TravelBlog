@@ -262,4 +262,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             cbSelect = itemView.findViewById(R.id.cbSelect);
         }
     }
+
+    public List<Message> getCurrentList() {
+        return messageList;
+    }
 }

@@ -13,7 +13,7 @@
         android:layout_height="?attr/actionBarSize"
         android:background="@drawable/bg_toolbar_gradient"
         app:title="WanderLog"
-        app:titleTextColor="@android:color/white" />
+        app:titleTextColor="#2A542E" />
 
     <FrameLayout
         android:id="@+id/fragmentContainer"

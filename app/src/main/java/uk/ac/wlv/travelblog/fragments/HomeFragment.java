@@ -1,5 +1,6 @@
 package uk.ac.wlv.travelblog.fragments;
 
+import android.widget.ImageView;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -38,7 +39,7 @@ public class HomeFragment extends Fragment {
     private boolean isGuest;
     private SharedPreferences sharedPreferences;
 
-    // Demo posts for guest users
+    // Demo posts for guest users (if database empty)
     private List<Message> demoPosts;
 
     public HomeFragment() {
@@ -57,54 +58,53 @@ public class HomeFragment extends Fragment {
 
         Log.d("HomeFragment", "onCreate: userId=" + userId + ", isGuest=" + isGuest);
 
-        // Create demo posts for guest
         createDemoPosts();
     }
 
     private void createDemoPosts() {
         demoPosts = new ArrayList<>();
 
-        // Demo Post 1
         Message post1 = new Message();
         post1.setId(1001);
+        post1.setUserId(-1);
         post1.setTitle("Galle Fort Trip");
         post1.setContent("Exploring the historic Dutch fortress in southern Sri Lanka. The cobblestone streets and colonial architecture made it feel like stepping back in time. We spent hours wandering through the narrow alleys, discovering hidden cafes and boutique shops.");
         post1.setCreatedDate("2026-03-15 10:30:00");
         post1.setImagePath(null);
         demoPosts.add(post1);
 
-        // Demo Post 2
         Message post2 = new Message();
         post2.setId(1002);
+        post2.setUserId(-1);
         post2.setTitle("Mount Fuji Adventure");
-        post2.setContent("An unforgettable sunrise hike to the summit of Japan's most iconic mountain. The journey was challenging but the view from the top was absolutely breathtaking. Standing above the clouds as the sun rose was a moment I'll never forget.");
+        post2.setContent("An unforgettable sunrise hike to the summit of Japan's most iconic mountain. The journey was challenging but the view from the top was absolutely breathtaking.");
         post2.setCreatedDate("2026-03-10 05:45:00");
         post2.setImagePath(null);
         demoPosts.add(post2);
 
-        // Demo Post 3
         Message post3 = new Message();
         post3.setId(1003);
+        post3.setUserId(-1);
         post3.setTitle("Bali Beach Paradise");
-        post3.setContent("White sandy beaches, crystal clear waters, and stunning sunsets. Bali exceeded all my expectations. The local culture, delicious food, and friendly people made this trip truly special.");
+        post3.setContent("White sandy beaches, crystal clear waters, and stunning sunsets. Bali exceeded all my expectations.");
         post3.setCreatedDate("2026-03-05 18:20:00");
         post3.setImagePath(null);
         demoPosts.add(post3);
 
-        // Demo Post 4
         Message post4 = new Message();
         post4.setId(1004);
+        post4.setUserId(-1);
         post4.setTitle("Kyoto Cherry Blossoms");
-        post4.setContent("Walking through the ancient streets of Kyoto during cherry blossom season was like stepping into a dream. The pink petals falling like snow, the historic temples, and the peaceful gardens created an unforgettable experience.");
+        post4.setContent("Walking through the ancient streets of Kyoto during cherry blossom season was like stepping into a dream.");
         post4.setCreatedDate("2026-02-28 14:15:00");
         post4.setImagePath(null);
         demoPosts.add(post4);
 
-        // Demo Post 5
         Message post5 = new Message();
         post5.setId(1005);
+        post5.setUserId(-1);
         post5.setTitle("Swiss Alps Trekking");
-        post5.setContent("The Swiss Alps offer some of the most spectacular trekking routes in the world. Green meadows, snow-capped peaks, and crystal-clear lakes. Every turn revealed a postcard-perfect view.");
+        post5.setContent("The Swiss Alps offer some of the most spectacular trekking routes in the world.");
         post5.setCreatedDate("2026-02-20 09:00:00");
         post5.setImagePath(null);
         demoPosts.add(post5);
@@ -184,7 +184,7 @@ public class HomeFragment extends Fragment {
 
         if (isGuest) {
             tvWelcome.setText("Hello, Explorer!");
-            tvStats.setText("Sign in to save your own memories");
+            tvStats.setText("Explore featured travel memories");
         } else {
             String name = userEmail.split("@")[0];
             tvWelcome.setText("Welcome back, " + name + "!");
@@ -197,12 +197,15 @@ public class HomeFragment extends Fragment {
             @Override
             public void onItemClick(int position, int messageId) {
                 if (isGuest) {
-                    // For guest, show demo posts (but can't edit/delete)
-                    Message clickedPost = demoPosts.get(position);
-                    Toast.makeText(getContext(),
-                            "Demo Post: " + clickedPost.getTitle() + "\nSign in to create your own memories!",
-                            Toast.LENGTH_LONG).show();
+                    // ========== GUEST: Show demo post in a dialog or simple view ==========
+                    Message clickedPost;
+                    List<Message> currentList = adapter.getCurrentList();
+                    if (position < currentList.size()) {
+                        clickedPost = currentList.get(position);
+                        showGuestPostDialog(clickedPost);
+                    }
                 } else {
+                    // Registered user: go to full detail activity
                     Intent intent = new Intent(getContext(), uk.ac.wlv.travelblog.activities.PostDetailActivity.class);
                     intent.putExtra(uk.ac.wlv.travelblog.activities.PostDetailActivity.EXTRA_MESSAGE_ID, messageId);
                     startActivity(intent);
@@ -225,12 +228,108 @@ public class HomeFragment extends Fragment {
         recyclerView.setAdapter(adapter);
     }
 
+    private void showGuestPostDialog(Message post) {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
+
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_guest_post, null);
+
+        TextView tvTitle = dialogView.findViewById(R.id.dialogTitle);
+        TextView tvDate = dialogView.findViewById(R.id.dialogDate);
+        TextView tvContent = dialogView.findViewById(R.id.dialogContent);
+        TextView tvUser = dialogView.findViewById(R.id.dialogUser);
+        ImageView ivImage = dialogView.findViewById(R.id.dialogImage);
+
+        tvTitle.setText(post.getTitle());
+        tvContent.setText(post.getContent());
+
+        // Format date
+        String formattedDate = formatDate(post.getCreatedDate());
+        tvDate.setText(formattedDate);
+
+        // Load image
+        loadDialogImage(post.getImagePath(), ivImage);
+
+        // Show user info if available
+        if (post.getUserId() > 0) {
+            String userEmail = dbHelper.getUserEmailById(post.getUserId());
+            tvUser.setText("Posted by: " + userEmail);
+            tvUser.setVisibility(View.VISIBLE);
+        } else {
+            tvUser.setVisibility(View.GONE);
+        }
+
+        builder.setView(dialogView);
+
+        // ========== ONLY CLOSE BUTTON (REMOVE SIGN IN BUTTON) ==========
+        builder.setPositiveButton("Close", null);
+        // Remove neutral button (Sign In to Create)
+        // ================================================================
+
+        builder.show();
+    }
+
+    // ========== METHOD TO LOAD IMAGE IN DIALOG ==========
+    private void loadDialogImage(String imagePath, ImageView imageView) {
+        if (imagePath != null && !imagePath.isEmpty()) {
+            try {
+                // Check if it's a file path (saved in app storage)
+                java.io.File imgFile = new java.io.File(requireContext().getFilesDir(), imagePath);
+                if (imgFile.exists()) {
+                    android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                    imageView.setImageBitmap(bitmap);
+                    imageView.setVisibility(View.VISIBLE);
+                    return;
+                }
+
+                // Check if it's a content URI (from gallery)
+                if (imagePath.startsWith("content://")) {
+                    android.net.Uri imageUri = android.net.Uri.parse(imagePath);
+                    imageView.setImageURI(imageUri);
+                    imageView.setVisibility(View.VISIBLE);
+                    return;
+                }
+
+                // No image found
+                imageView.setVisibility(View.GONE);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                imageView.setVisibility(View.GONE);
+            }
+        } else {
+            imageView.setVisibility(View.GONE);
+        }
+    }
+
+    private String formatDate(String dateTime) {
+        if (dateTime == null || dateTime.isEmpty()) {
+            return "No date";
+        }
+        if (dateTime.contains(" ")) {
+            String datePart = dateTime.split(" ")[0];
+            String[] parts = datePart.split("-");
+            if (parts.length == 3) {
+                String month = getMonthName(Integer.parseInt(parts[1]));
+                return month + " " + parts[2] + ", " + parts[0];
+            }
+            return datePart;
+        }
+        return dateTime;
+    }
+
+    private String getMonthName(int month) {
+        String[] months = {"January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"};
+        return months[month - 1];
+    }
+    // ==========================================
+
     private void loadMessages() {
         if (!isGuest && userId != -1) {
-            // Real user - load only their messages
+            // Real user - load from database
             List<Message> messages = dbHelper.getAllMessagesAsList(userId);
             adapter.updateMessages(messages);
-            adapter.setShowUserEmail(false); // Don't show user email
+            adapter.setShowUserEmail(false);
 
             int count = messages.size();
             if (count == 0) {
@@ -246,15 +345,20 @@ public class HomeFragment extends Fragment {
 
             if (allMessages.isEmpty()) {
                 // If no messages in database, show demo posts
-                allMessages = demoPosts;
-                tvStats.setText(allMessages.size() + " featured adventures (Demo)");
+                adapter.updateMessages(demoPosts);
+                adapter.setShowUserEmail(false);
+                tvStats.setText(demoPosts.size() + " featured adventures");
             } else {
+                adapter.updateMessages(allMessages);
+                adapter.setShowUserEmail(true);
                 tvStats.setText(allMessages.size() + " memories from travelers");
             }
-
-            adapter.updateMessages(allMessages);
-            adapter.setShowUserEmail(true); // Show which user posted
         }
+    }
+
+    // Add this method to MessageAdapter to get current list
+    public List<Message> getCurrentList() {
+        return adapter.getCurrentList();
     }
 
     @Override
