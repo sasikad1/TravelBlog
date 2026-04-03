@@ -32,7 +32,7 @@ public class EditPostActivity extends AppCompatActivity {
     private static final int CAMERA_REQUEST_CODE = 100;
     private static final int GALLERY_REQUEST_CODE = 101;
 
-    private ImageButton btnBack;
+    private ImageButton btnClose;  // Changed from btnBack
     private ImageView ivImagePreview;
     private EditText etLocation, etStory;
     private Button btnCamera, btnGallery, btnSave;
@@ -70,7 +70,7 @@ public class EditPostActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        btnBack = findViewById(R.id.btnBack);
+        btnClose = findViewById(R.id.btnClose);  // Changed from btnBack
         ivImagePreview = findViewById(R.id.ivImagePreview);
         etLocation = findViewById(R.id.etLocation);
         etStory = findViewById(R.id.etStory);
@@ -118,7 +118,8 @@ public class EditPostActivity extends AppCompatActivity {
     }
 
     private void setupClickListeners() {
-        btnBack.setOnClickListener(v -> finish());
+        // Close button - go back without saving
+        btnClose.setOnClickListener(v -> finish());
 
         btnCamera.setOnClickListener(v -> openCamera());
         btnGallery.setOnClickListener(v -> openGallery());

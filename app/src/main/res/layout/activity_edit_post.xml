@@ -15,13 +15,14 @@
         android:background="@android:color/white"
         android:elevation="4dp">
 
+        <!-- Close Button (instead of back) -->
         <ImageButton
-            android:id="@+id/btnBack"
+            android:id="@+id/btnClose"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_revert"
-            android:contentDescription="Back"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:contentDescription="Close"
             app:tint="#444444" />
 
         <TextView
@@ -134,7 +135,7 @@
                 android:layout_height="55dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="32dp"
-                android:backgroundTint="#2E7D32"
+                android:background="@drawable/rounded_button_green"
                 android:text="Save Changes"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
