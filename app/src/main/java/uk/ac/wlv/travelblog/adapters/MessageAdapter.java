@@ -246,6 +246,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         notifyDataSetChanged();
     }
 
+    // Update the ViewHolder class in MessageAdapter.java
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitle, tvContent, tvDate, tvStatus, tvUserEmail;
         ImageView ivMessageImage;
