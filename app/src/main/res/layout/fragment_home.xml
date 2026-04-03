@@ -100,7 +100,7 @@
 
     </LinearLayout>
 
-    <!-- Floating Action Button - MAKE SURE ID IS "fabAdd" -->
+    <!-- FAB Button with android:src -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAdd"
         android:layout_width="wrap_content"
@@ -108,7 +108,7 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:layout_marginBottom="24dp"
-        android:src="@android:drawable/ic_menu_add"
+        android:src="@drawable/ic_plus"
         app:backgroundTint="#2E7D32"
         app:tint="@android:color/white"
         app:fabSize="normal" />
