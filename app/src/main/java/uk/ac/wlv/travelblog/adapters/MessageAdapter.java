@@ -8,9 +8,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 import java.io.File;
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     private OnItemClickListener listener;
     private boolean isSelectionMode = false;
     private Set<Integer> selectedPositions = new HashSet<>();
-    private boolean showUserEmail = false; // New flag for admin view
+    private boolean showUserEmail = false;
     private DatabaseHelper dbHelper;
 
     public interface OnItemClickListener {
@@ -44,7 +44,6 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         this.dbHelper = new DatabaseHelper(context);
     }
 
-    // Enable showing user email (for admin/guest view)
     public void setShowUserEmail(boolean show) {
         this.showUserEmail = show;
     }
@@ -85,15 +84,31 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         // Load image
         loadImage(message.getImagePath(), holder.ivMessageImage);
 
-        // Selection mode
+        // ========== SELECTION MODE HANDLING ==========
+        boolean isSelected = selectedPositions.contains(position);
+
         if (isSelectionMode) {
             holder.cbSelect.setVisibility(View.VISIBLE);
-            holder.cbSelect.setChecked(selectedPositions.contains(position));
+            holder.cbSelect.setChecked(isSelected);
+
+            // Show/hide selection overlay
+            if (isSelected) {
+                holder.selectedOverlay.setVisibility(View.VISIBLE);
+                holder.cardView.setCardElevation(8f);
+            } else {
+                holder.selectedOverlay.setVisibility(View.GONE);
+                holder.cardView.setCardElevation(4f);
+            }
+
             holder.cbSelect.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 if (isChecked) {
                     selectedPositions.add(position);
+                    holder.selectedOverlay.setVisibility(View.VISIBLE);
+                    holder.cardView.setCardElevation(8f);
                 } else {
                     selectedPositions.remove(position);
+                    holder.selectedOverlay.setVisibility(View.GONE);
+                    holder.cardView.setCardElevation(4f);
                 }
                 if (listener != null) {
                     listener.onSelectionChanged(selectedPositions.size());
@@ -101,8 +116,11 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             });
         } else {
             holder.cbSelect.setVisibility(View.GONE);
+            holder.selectedOverlay.setVisibility(View.GONE);
+            holder.cardView.setCardElevation(4f);
             holder.cbSelect.setOnCheckedChangeListener(null);
         }
+        // ============================================
 
         holder.itemView.setOnClickListener(v -> {
             if (isSelectionMode) {
@@ -110,9 +128,13 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
                 if (isChecked) {
                     selectedPositions.remove(position);
                     holder.cbSelect.setChecked(false);
+                    holder.selectedOverlay.setVisibility(View.GONE);
+                    holder.cardView.setCardElevation(4f);
                 } else {
                     selectedPositions.add(position);
                     holder.cbSelect.setChecked(true);
+                    holder.selectedOverlay.setVisibility(View.VISIBLE);
+                    holder.cardView.setCardElevation(8f);
                 }
                 if (listener != null) {
                     listener.onSelectionChanged(selectedPositions.size());
@@ -125,7 +147,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         });
 
         holder.itemView.setOnLongClickListener(v -> {
-            if (!isSelectionMode) {
+            if (!isSelectionMode && !isSelectionMode) {
                 enableSelectionMode();
                 selectedPositions.add(position);
                 notifyItemChanged(position);
@@ -246,12 +268,17 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         notifyDataSetChanged();
     }
 
-    // Update the ViewHolder class in MessageAdapter.java
+    public List<Message> getCurrentList() {
+        return messageList;
+    }
 
+    // ========== VIEW HOLDER CLASS ==========
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitle, tvContent, tvDate, tvStatus, tvUserEmail;
         ImageView ivMessageImage;
         CheckBox cbSelect;
+        View selectedOverlay;
+        CardView cardView;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -262,10 +289,9 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             tvUserEmail = itemView.findViewById(R.id.tvUserEmail);
             ivMessageImage = itemView.findViewById(R.id.ivMessageImage);
             cbSelect = itemView.findViewById(R.id.cbSelect);
+            selectedOverlay = itemView.findViewById(R.id.selectedOverlay);
+            cardView = (CardView) itemView;
         }
     }
-
-    public List<Message> getCurrentList() {
-        return messageList;
-    }
+    // ======================================
 }

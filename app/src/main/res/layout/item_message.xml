@@ -1,12 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardView"
     android:layout_width="match_parent"
     android:layout_height="280dp"
     android:layout_margin="12dp"
     app:cardCornerRadius="16dp"
     app:cardElevation="4dp"
     app:cardBackgroundColor="#FFFFFF">
+
+    <!-- Selected state overlay -->
+    <View
+        android:id="@+id/selectedOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#802E7D32"
+        android:visibility="gone" />
 
     <!-- Checkbox for multi-select (hidden by default) -->
     <CheckBox
@@ -15,7 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:visibility="gone"
-        android:buttonTint="#2E7D32" />
+        android:buttonTint="#FFFFFF" />
 
     <LinearLayout
         android:layout_width="match_parent"

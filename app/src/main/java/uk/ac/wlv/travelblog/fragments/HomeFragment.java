@@ -6,6 +6,8 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -13,6 +15,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -38,6 +41,11 @@ public class HomeFragment extends Fragment {
     private String userEmail;
     private boolean isGuest;
     private SharedPreferences sharedPreferences;
+
+    // Selection mode
+    private MenuItem deleteMenuItem;
+    private MenuItem cancelMenuItem;
+    private boolean isSelectionMode = false;
 
     // Demo posts for guest users (if database empty)
     private List<Message> demoPosts;
@@ -68,7 +76,7 @@ public class HomeFragment extends Fragment {
         post1.setId(1001);
         post1.setUserId(-1);
         post1.setTitle("Galle Fort Trip");
-        post1.setContent("Exploring the historic Dutch fortress in southern Sri Lanka. The cobblestone streets and colonial architecture made it feel like stepping back in time. We spent hours wandering through the narrow alleys, discovering hidden cafes and boutique shops.");
+        post1.setContent("Exploring the historic Dutch fortress in southern Sri Lanka...");
         post1.setCreatedDate("2026-03-15 10:30:00");
         post1.setImagePath(null);
         demoPosts.add(post1);
@@ -77,7 +85,7 @@ public class HomeFragment extends Fragment {
         post2.setId(1002);
         post2.setUserId(-1);
         post2.setTitle("Mount Fuji Adventure");
-        post2.setContent("An unforgettable sunrise hike to the summit of Japan's most iconic mountain. The journey was challenging but the view from the top was absolutely breathtaking.");
+        post2.setContent("An unforgettable sunrise hike to the summit...");
         post2.setCreatedDate("2026-03-10 05:45:00");
         post2.setImagePath(null);
         demoPosts.add(post2);
@@ -86,28 +94,10 @@ public class HomeFragment extends Fragment {
         post3.setId(1003);
         post3.setUserId(-1);
         post3.setTitle("Bali Beach Paradise");
-        post3.setContent("White sandy beaches, crystal clear waters, and stunning sunsets. Bali exceeded all my expectations.");
+        post3.setContent("White sandy beaches, crystal clear waters...");
         post3.setCreatedDate("2026-03-05 18:20:00");
         post3.setImagePath(null);
         demoPosts.add(post3);
-
-        Message post4 = new Message();
-        post4.setId(1004);
-        post4.setUserId(-1);
-        post4.setTitle("Kyoto Cherry Blossoms");
-        post4.setContent("Walking through the ancient streets of Kyoto during cherry blossom season was like stepping into a dream.");
-        post4.setCreatedDate("2026-02-28 14:15:00");
-        post4.setImagePath(null);
-        demoPosts.add(post4);
-
-        Message post5 = new Message();
-        post5.setId(1005);
-        post5.setUserId(-1);
-        post5.setTitle("Swiss Alps Trekking");
-        post5.setContent("The Swiss Alps offer some of the most spectacular trekking routes in the world.");
-        post5.setCreatedDate("2026-02-20 09:00:00");
-        post5.setImagePath(null);
-        demoPosts.add(post5);
     }
 
     @Nullable
@@ -127,7 +117,9 @@ public class HomeFragment extends Fragment {
         setupToolbar();
 
         fabAdd.setOnClickListener(v -> {
-            if (isGuest) {
+            if (isSelectionMode) {
+                exitSelectionMode();
+            } else if (isGuest) {
                 Toast.makeText(getContext(), "Please sign in to add memories", Toast.LENGTH_SHORT).show();
             } else {
                 try {
@@ -153,6 +145,7 @@ public class HomeFragment extends Fragment {
     private void setupToolbar() {
         toolbar = requireActivity().findViewById(R.id.toolbar);
         if (toolbar != null) {
+            // Setup normal menu
             toolbar.getMenu().clear();
             toolbar.inflateMenu(R.menu.main_menu);
             toolbar.setOnMenuItemClickListener(item -> {
@@ -162,6 +155,100 @@ public class HomeFragment extends Fragment {
                 }
                 return false;
             });
+        }
+    }
+
+    private void enterSelectionMode() {
+        isSelectionMode = true;
+
+        // Change toolbar for selection mode
+        if (toolbar != null) {
+            toolbar.getMenu().clear();
+            toolbar.inflateMenu(R.menu.selection_menu);
+            toolbar.setTitle("Select memories");
+            toolbar.setTitleTextColor(getResources().getColor(android.R.color.white));
+
+            deleteMenuItem = toolbar.getMenu().findItem(R.id.action_delete);
+            cancelMenuItem = toolbar.getMenu().findItem(R.id.action_cancel);
+
+            toolbar.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.action_delete) {
+                    deleteSelectedMessages();
+                    return true;
+                } else if (item.getItemId() == R.id.action_cancel) {
+                    exitSelectionMode();
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        // Enable selection mode in adapter
+        adapter.enableSelectionMode();
+    }
+
+    private void exitSelectionMode() {
+        isSelectionMode = false;
+
+        // Restore normal toolbar
+        if (toolbar != null) {
+            toolbar.setTitle("WanderLog");
+            toolbar.getMenu().clear();
+            toolbar.inflateMenu(R.menu.main_menu);
+            toolbar.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.action_logout) {
+                    logout();
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        // Disable selection mode in adapter
+        if (adapter != null) {
+            adapter.disableSelectionMode();
+        }
+    }
+
+    private void deleteSelectedMessages() {
+        if (adapter == null) return;
+
+        List<Integer> selectedIds = adapter.getSelectedMessageIds();
+        if (selectedIds.isEmpty()) {
+            Toast.makeText(getContext(), "No items selected", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Show confirmation dialog
+        new androidx.appcompat.app.AlertDialog.Builder(getContext())
+                .setTitle("Delete Memories")
+                .setMessage("Are you sure you want to delete " + selectedIds.size() + " memory(s)?")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    // Convert to int array
+                    int[] ids = new int[selectedIds.size()];
+                    for (int i = 0; i < selectedIds.size(); i++) {
+                        ids[i] = selectedIds.get(i);
+                    }
+
+                    // Delete from database
+                    int deletedCount = dbHelper.deleteMultipleMessages(ids);
+
+                    if (deletedCount > 0) {
+                        Toast.makeText(getContext(), deletedCount + " memories deleted", Toast.LENGTH_SHORT).show();
+                        loadMessages(); // Refresh list
+                    } else {
+                        Toast.makeText(getContext(), "Failed to delete", Toast.LENGTH_SHORT).show();
+                    }
+
+                    exitSelectionMode();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void updateSelectionCount(int count) {
+        if (toolbar != null && isSelectionMode) {
+            toolbar.setTitle(count + " selected");
         }
     }
 
@@ -196,8 +283,9 @@ public class HomeFragment extends Fragment {
         adapter = new MessageAdapter(getContext(), new ArrayList<>(), new MessageAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position, int messageId) {
-                if (isGuest) {
-                    // ========== GUEST: Show demo post in a dialog or simple view ==========
+                if (isSelectionMode) {
+                    // Selection mode handles click in adapter
+                } else if (isGuest) {
                     Message clickedPost;
                     List<Message> currentList = adapter.getCurrentList();
                     if (position < currentList.size()) {
@@ -205,9 +293,8 @@ public class HomeFragment extends Fragment {
                         showGuestPostDialog(clickedPost);
                     }
                 } else {
-                    // Registered user: go to full detail activity
-                    Intent intent = new Intent(getContext(), uk.ac.wlv.travelblog.activities.PostDetailActivity.class);
-                    intent.putExtra(uk.ac.wlv.travelblog.activities.PostDetailActivity.EXTRA_MESSAGE_ID, messageId);
+                    Intent intent = new Intent(getContext(), PostDetailActivity.class);
+                    intent.putExtra(PostDetailActivity.EXTRA_MESSAGE_ID, messageId);
                     startActivity(intent);
                     requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
                 }
@@ -215,14 +302,21 @@ public class HomeFragment extends Fragment {
 
             @Override
             public void onItemLongClick(int position, int messageId) {
-                if (!isGuest) {
-                    Toast.makeText(getContext(), "Options for memory: " + messageId, Toast.LENGTH_SHORT).show();
+                if (!isGuest && !isSelectionMode) {
+                    enterSelectionMode();
+                    // Select current item
+                    adapter.enableSelectionMode();
+                    updateSelectionCount(adapter.getSelectedCount());
                 }
             }
 
             @Override
             public void onSelectionChanged(int selectedCount) {
-                // Selection mode not needed for guest
+                if (selectedCount > 0) {
+                    updateSelectionCount(selectedCount);
+                } else if (isSelectionMode) {
+                    exitSelectionMode();
+                }
             }
         });
         recyclerView.setAdapter(adapter);
@@ -242,14 +336,11 @@ public class HomeFragment extends Fragment {
         tvTitle.setText(post.getTitle());
         tvContent.setText(post.getContent());
 
-        // Format date
         String formattedDate = formatDate(post.getCreatedDate());
         tvDate.setText(formattedDate);
 
-        // Load image
         loadDialogImage(post.getImagePath(), ivImage);
 
-        // Show user info if available
         if (post.getUserId() > 0) {
             String userEmail = dbHelper.getUserEmailById(post.getUserId());
             tvUser.setText("Posted by: " + userEmail);
@@ -259,20 +350,13 @@ public class HomeFragment extends Fragment {
         }
 
         builder.setView(dialogView);
-
-        // ========== ONLY CLOSE BUTTON (REMOVE SIGN IN BUTTON) ==========
         builder.setPositiveButton("Close", null);
-        // Remove neutral button (Sign In to Create)
-        // ================================================================
-
         builder.show();
     }
 
-    // ========== METHOD TO LOAD IMAGE IN DIALOG ==========
     private void loadDialogImage(String imagePath, ImageView imageView) {
         if (imagePath != null && !imagePath.isEmpty()) {
             try {
-                // Check if it's a file path (saved in app storage)
                 java.io.File imgFile = new java.io.File(requireContext().getFilesDir(), imagePath);
                 if (imgFile.exists()) {
                     android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeFile(imgFile.getAbsolutePath());
@@ -281,7 +365,6 @@ public class HomeFragment extends Fragment {
                     return;
                 }
 
-                // Check if it's a content URI (from gallery)
                 if (imagePath.startsWith("content://")) {
                     android.net.Uri imageUri = android.net.Uri.parse(imagePath);
                     imageView.setImageURI(imageUri);
@@ -289,7 +372,6 @@ public class HomeFragment extends Fragment {
                     return;
                 }
 
-                // No image found
                 imageView.setVisibility(View.GONE);
 
             } catch (Exception e) {
@@ -322,11 +404,9 @@ public class HomeFragment extends Fragment {
                 "July", "August", "September", "October", "November", "December"};
         return months[month - 1];
     }
-    // ==========================================
 
     private void loadMessages() {
         if (!isGuest && userId != -1) {
-            // Real user - load from database
             List<Message> messages = dbHelper.getAllMessagesAsList(userId);
             adapter.updateMessages(messages);
             adapter.setShowUserEmail(false);
@@ -340,11 +420,9 @@ public class HomeFragment extends Fragment {
                 tvStats.setText(count + " memories saved");
             }
         } else {
-            // Guest user - show ALL messages from ALL users
             List<Message> allMessages = dbHelper.getAllMessagesFromAllUsers();
 
             if (allMessages.isEmpty()) {
-                // If no messages in database, show demo posts
                 adapter.updateMessages(demoPosts);
                 adapter.setShowUserEmail(false);
                 tvStats.setText(demoPosts.size() + " featured adventures");
@@ -356,14 +434,12 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    // Add this method to MessageAdapter to get current list
-    public List<Message> getCurrentList() {
-        return adapter.getCurrentList();
-    }
-
     @Override
     public void onResume() {
         super.onResume();
+        if (isSelectionMode) {
+            exitSelectionMode();
+        }
         loadMessages();
     }
 }

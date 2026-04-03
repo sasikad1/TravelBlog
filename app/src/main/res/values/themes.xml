@@ -16,20 +16,24 @@
         <item name="colorSecondary">#FFC107</item>
         <item name="colorSecondaryVariant">#FFA000</item>
         <item name="colorOnSecondary">@android:color/black</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">true</item>
 
+        <!-- Status Bar Green -->
+        <item name="android:statusBarColor">#2E7D32</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 
     <style name="Theme.TravelBlog" parent="Base.Theme.TravelBlog" />
 
-    <style name="Theme.TravelBlog.NoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar">
-        <item name="colorPrimary">#2E7D32</item>
-        <item name="colorPrimaryVariant">#1B5E20</item>
+    <style name="Theme.TravelBlog.NoActionBar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#3D6A3E</item>
+        <item name="colorPrimaryVariant">#1A3C1C</item>
         <item name="colorOnPrimary">@android:color/white</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">true</item>
+
+        <item name="android:statusBarColor">#385638</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
+
+
 
     <!-- Filter Tag Style -->
     <style name="FilterTag" parent="Widget.AppCompat.TextView">

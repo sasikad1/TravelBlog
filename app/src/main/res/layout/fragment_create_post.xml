@@ -123,27 +123,28 @@
             android:layout_marginBottom="24dp"
             android:orientation="horizontal">
 
+            <!-- Save Post Button with rounded corners -->
             <Button
                 android:id="@+id/btnSaveSQLite"
                 android:layout_width="0dp"
                 android:layout_height="55dp"
                 android:layout_weight="1"
-                android:backgroundTint="#2E7D32"
+                android:background="@drawable/rounded_button_green"
                 android:text="Save Post"
                 android:textAllCaps="false"
-
                 android:textColor="#FFFFFF" />
 
             <View
                 android:layout_width="12dp"
                 android:layout_height="wrap_content" />
 
+            <!-- Clear Button with rounded corners -->
             <Button
                 android:id="@+id/btnDeleteDraft"
                 android:layout_width="0dp"
                 android:layout_height="55dp"
                 android:layout_weight="1"
-                android:backgroundTint="#EEEEEE"
+                android:background="@drawable/rounded_button_light"
                 android:text="Clear"
                 android:textAllCaps="false"
                 android:textColor="#777777" />
