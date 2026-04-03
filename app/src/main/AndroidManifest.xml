@@ -22,9 +22,9 @@
         android:theme="@style/Theme.TravelBlog.NoActionBar"
         android:requestLegacyExternalStorage="true">
 
-        <!-- Login Activity - Launcher -->
+        <!-- Splash Activity - Launcher -->
         <activity
-            android:name=".activities.LoginActivity"
+            android:name=".activities.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.TravelBlog.NoActionBar">
             <intent-filter>
@@ -33,18 +33,25 @@
             </intent-filter>
         </activity>
 
+        <!-- Login Activity -->
+        <activity
+            android:name=".activities.LoginActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TravelBlog.NoActionBar" />
+
         <!-- Register Activity -->
         <activity
             android:name=".activities.RegisterActivity"
             android:exported="false"
             android:theme="@style/Theme.TravelBlog.NoActionBar" />
 
-        <!-- Main Activity (with Bottom Navigation) -->
+        <!-- Main Activity -->
         <activity
             android:name=".activities.MainActivity"
             android:exported="false"
             android:theme="@style/Theme.TravelBlog.NoActionBar" />
 
+        <!-- Post Detail Activity -->
         <activity
             android:name=".activities.PostDetailActivity"
             android:exported="false"

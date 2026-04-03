@@ -3,17 +3,15 @@ package uk.ac.wlv.travelblog.activities;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import uk.ac.wlv.travelblog.R;
 import uk.ac.wlv.travelblog.database.DatabaseHelper;
 
@@ -25,22 +23,21 @@ public class LoginActivity extends AppCompatActivity {
     private TextView tvError;
     private DatabaseHelper dbHelper;
     private SharedPreferences sharedPreferences;
-    private Animation shakeAnimation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_login);
 
+        // Remove title bar
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
 
-        setContentView(R.layout.activity_login);
-
         dbHelper = new DatabaseHelper(this);
         sharedPreferences = getSharedPreferences("BlogAppPrefs", MODE_PRIVATE);
-        shakeAnimation = AnimationUtils.loadAnimation(this, R.anim.shake);
 
+        // Check if already logged in
         if (sharedPreferences.getBoolean("isLoggedIn", false)) {
             navigateToMain();
             return;
@@ -223,7 +220,6 @@ public class LoginActivity extends AppCompatActivity {
     private void showFieldError(EditText field, String message) {
         field.setError(message);
         field.requestFocus();
-        field.startAnimation(shakeAnimation);
         showError(message);
     }
 
