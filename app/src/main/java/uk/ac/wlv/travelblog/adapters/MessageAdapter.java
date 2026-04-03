@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import uk.ac.wlv.travelblog.R;
+import uk.ac.wlv.travelblog.database.DatabaseHelper;
 import uk.ac.wlv.travelblog.models.Message;
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> {
@@ -27,6 +28,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     private OnItemClickListener listener;
     private boolean isSelectionMode = false;
     private Set<Integer> selectedPositions = new HashSet<>();
+    private boolean showUserEmail = false; // New flag for admin view
+    private DatabaseHelper dbHelper;
 
     public interface OnItemClickListener {
         void onItemClick(int position, int messageId);
@@ -38,6 +41,12 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         this.context = context;
         this.messageList = messageList != null ? messageList : new ArrayList<>();
         this.listener = listener;
+        this.dbHelper = new DatabaseHelper(context);
+    }
+
+    // Enable showing user email (for admin/guest view)
+    public void setShowUserEmail(boolean show) {
+        this.showUserEmail = show;
     }
 
     @Override
@@ -51,6 +60,15 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         Message message = messageList.get(position);
 
         holder.tvTitle.setText(message.getTitle());
+
+        // Show user email if enabled
+        if (showUserEmail) {
+            holder.tvUserEmail.setVisibility(View.VISIBLE);
+            String userEmail = dbHelper.getUserEmailById(message.getUserId());
+            holder.tvUserEmail.setText("✉️ " + userEmail);
+        } else {
+            holder.tvUserEmail.setVisibility(View.GONE);
+        }
 
         // Truncate content if too long
         String content = message.getContent();
@@ -88,7 +106,6 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
 
         holder.itemView.setOnClickListener(v -> {
             if (isSelectionMode) {
-                // In selection mode, toggle checkbox
                 boolean isChecked = selectedPositions.contains(position);
                 if (isChecked) {
                     selectedPositions.remove(position);
@@ -109,9 +126,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
 
         holder.itemView.setOnLongClickListener(v -> {
             if (!isSelectionMode) {
-                // Enter selection mode on long press
                 enableSelectionMode();
-                // Select current item
                 selectedPositions.add(position);
                 notifyItemChanged(position);
                 if (listener != null) {
@@ -153,7 +168,6 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     }
 
     public void deleteSelectedMessages() {
-        // Remove selected items from list
         List<Message> newList = new ArrayList<>();
         for (int i = 0; i < messageList.size(); i++) {
             if (!selectedPositions.contains(i)) {
@@ -233,7 +247,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvContent, tvDate, tvStatus;
+        TextView tvTitle, tvContent, tvDate, tvStatus, tvUserEmail;
         ImageView ivMessageImage;
         CheckBox cbSelect;
 
@@ -243,6 +257,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             tvContent = itemView.findViewById(R.id.tvContent);
             tvDate = itemView.findViewById(R.id.tvDate);
             tvStatus = itemView.findViewById(R.id.tvStatus);
+            tvUserEmail = itemView.findViewById(R.id.tvUserEmail);
             ivMessageImage = itemView.findViewById(R.id.ivMessageImage);
             cbSelect = itemView.findViewById(R.id.cbSelect);
         }

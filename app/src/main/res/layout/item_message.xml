@@ -73,6 +73,19 @@
                     android:layout_marginStart="8dp" />
             </LinearLayout>
 
+            <!-- User Email (for admin view) -->
+            <TextView
+                android:id="@+id/tvUserEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="user@example.com"
+                android:textSize="11sp"
+                android:textColor="#2196F3"
+                android:drawableStart="@android:drawable/ic_menu_mylocation"
+                android:drawablePadding="4dp"
+                android:visibility="gone" />
+
             <!-- Content Preview -->
             <TextView
                 android:id="@+id/tvContent"

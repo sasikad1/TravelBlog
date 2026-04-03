@@ -38,10 +38,8 @@ public class HomeFragment extends Fragment {
     private boolean isGuest;
     private SharedPreferences sharedPreferences;
 
-    // Selection mode
-    private android.view.MenuItem deleteMenuItem;
-    private android.view.MenuItem cancelMenuItem;
-    private boolean isSelectionMode = false;
+    // Demo posts for guest users
+    private List<Message> demoPosts;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -57,7 +55,59 @@ public class HomeFragment extends Fragment {
         userEmail = sharedPreferences.getString("userEmail", "");
         isGuest = sharedPreferences.getBoolean("isGuest", false);
 
-        Log.d("HomeFragment", "onCreate: userId=" + userId);
+        Log.d("HomeFragment", "onCreate: userId=" + userId + ", isGuest=" + isGuest);
+
+        // Create demo posts for guest
+        createDemoPosts();
+    }
+
+    private void createDemoPosts() {
+        demoPosts = new ArrayList<>();
+
+        // Demo Post 1
+        Message post1 = new Message();
+        post1.setId(1001);
+        post1.setTitle("Galle Fort Trip");
+        post1.setContent("Exploring the historic Dutch fortress in southern Sri Lanka. The cobblestone streets and colonial architecture made it feel like stepping back in time. We spent hours wandering through the narrow alleys, discovering hidden cafes and boutique shops.");
+        post1.setCreatedDate("2026-03-15 10:30:00");
+        post1.setImagePath(null);
+        demoPosts.add(post1);
+
+        // Demo Post 2
+        Message post2 = new Message();
+        post2.setId(1002);
+        post2.setTitle("Mount Fuji Adventure");
+        post2.setContent("An unforgettable sunrise hike to the summit of Japan's most iconic mountain. The journey was challenging but the view from the top was absolutely breathtaking. Standing above the clouds as the sun rose was a moment I'll never forget.");
+        post2.setCreatedDate("2026-03-10 05:45:00");
+        post2.setImagePath(null);
+        demoPosts.add(post2);
+
+        // Demo Post 3
+        Message post3 = new Message();
+        post3.setId(1003);
+        post3.setTitle("Bali Beach Paradise");
+        post3.setContent("White sandy beaches, crystal clear waters, and stunning sunsets. Bali exceeded all my expectations. The local culture, delicious food, and friendly people made this trip truly special.");
+        post3.setCreatedDate("2026-03-05 18:20:00");
+        post3.setImagePath(null);
+        demoPosts.add(post3);
+
+        // Demo Post 4
+        Message post4 = new Message();
+        post4.setId(1004);
+        post4.setTitle("Kyoto Cherry Blossoms");
+        post4.setContent("Walking through the ancient streets of Kyoto during cherry blossom season was like stepping into a dream. The pink petals falling like snow, the historic temples, and the peaceful gardens created an unforgettable experience.");
+        post4.setCreatedDate("2026-02-28 14:15:00");
+        post4.setImagePath(null);
+        demoPosts.add(post4);
+
+        // Demo Post 5
+        Message post5 = new Message();
+        post5.setId(1005);
+        post5.setTitle("Swiss Alps Trekking");
+        post5.setContent("The Swiss Alps offer some of the most spectacular trekking routes in the world. Green meadows, snow-capped peaks, and crystal-clear lakes. Every turn revealed a postcard-perfect view.");
+        post5.setCreatedDate("2026-02-20 09:00:00");
+        post5.setImagePath(null);
+        demoPosts.add(post5);
     }
 
     @Nullable
@@ -77,9 +127,7 @@ public class HomeFragment extends Fragment {
         setupToolbar();
 
         fabAdd.setOnClickListener(v -> {
-            if (isSelectionMode) {
-                exitSelectionMode();
-            } else if (isGuest) {
+            if (isGuest) {
                 Toast.makeText(getContext(), "Please sign in to add memories", Toast.LENGTH_SHORT).show();
             } else {
                 try {
@@ -117,156 +165,6 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    private void showSelectionToolbar() {
-        if (toolbar != null) {
-            toolbar.getMenu().clear();
-            toolbar.inflateMenu(R.menu.selection_menu);
-            toolbar.setTitle("Select memories");
-            toolbar.setTitleTextColor(getResources().getColor(android.R.color.white));
-
-            deleteMenuItem = toolbar.getMenu().findItem(R.id.action_delete);
-            cancelMenuItem = toolbar.getMenu().findItem(R.id.action_cancel);
-
-            toolbar.setOnMenuItemClickListener(item -> {
-                int itemId = item.getItemId();
-                if (itemId == R.id.action_delete) {
-                    deleteSelectedMessages();
-                    return true;
-                } else if (itemId == R.id.action_cancel) {
-                    exitSelectionMode();
-                    return true;
-                }
-                return false;
-            });
-        }
-    }
-
-    private void exitSelectionMode() {
-        isSelectionMode = false;
-        if (adapter != null) {
-            adapter.disableSelectionMode();
-        }
-        // Restore normal toolbar
-        if (toolbar != null) {
-            toolbar.setTitle("WanderLog");
-            toolbar.getMenu().clear();
-            toolbar.inflateMenu(R.menu.main_menu);
-            toolbar.setOnMenuItemClickListener(item -> {
-                if (item.getItemId() == R.id.action_logout) {
-                    logout();
-                    return true;
-                }
-                return false;
-            });
-        }
-    }
-
-    private void deleteSelectedMessages() {
-        if (adapter == null) return;
-
-        List<Integer> selectedIds = adapter.getSelectedMessageIds();
-        if (selectedIds.isEmpty()) {
-            Toast.makeText(getContext(), "No items selected", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Convert to int array
-        int[] ids = new int[selectedIds.size()];
-        for (int i = 0; i < selectedIds.size(); i++) {
-            ids[i] = selectedIds.get(i);
-        }
-
-        // Delete from database
-        int deletedCount = dbHelper.deleteMultipleMessages(ids);
-
-        if (deletedCount > 0) {
-            Toast.makeText(getContext(), deletedCount + " memories deleted", Toast.LENGTH_SHORT).show();
-            loadMessages(); // Refresh list
-        } else {
-            Toast.makeText(getContext(), "Failed to delete", Toast.LENGTH_SHORT).show();
-        }
-
-        exitSelectionMode();
-    }
-
-    private void updateSelectionCount(int count) {
-        if (toolbar != null && isSelectionMode) {
-            toolbar.setTitle(count + " selected");
-        }
-    }
-
-    private void initViews(View view) {
-        tvWelcome = view.findViewById(R.id.tvWelcome);
-        tvStats = view.findViewById(R.id.tvStats);
-        recyclerView = view.findViewById(R.id.recyclerView);
-        fabAdd = view.findViewById(R.id.fabAdd);
-
-        if (isGuest) {
-            tvWelcome.setText("Hello, Explorer!");
-            tvStats.setText("Sign in to save your memories");
-        } else {
-            String name = userEmail.split("@")[0];
-            tvWelcome.setText("Welcome back, " + name + "!");
-        }
-    }
-
-    private void setupRecyclerView() {
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new MessageAdapter(getContext(), new ArrayList<>(), new MessageAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(int position, int messageId) {
-                if (isSelectionMode) {
-                    // Already handled in adapter
-                } else if (isGuest) {
-                    Toast.makeText(getContext(), "Sign in to view memory", Toast.LENGTH_SHORT).show();
-                } else {
-                    Intent intent = new Intent(getContext(), PostDetailActivity.class);
-                    intent.putExtra(PostDetailActivity.EXTRA_MESSAGE_ID, messageId);
-                    startActivity(intent);
-                    requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
-                }
-            }
-
-            @Override
-            public void onItemLongClick(int position, int messageId) {
-                if (!isGuest && !isSelectionMode) {
-                    isSelectionMode = true;
-                    showSelectionToolbar();
-                    adapter.enableSelectionMode();
-                }
-            }
-
-            @Override
-            public void onSelectionChanged(int selectedCount) {
-                if (selectedCount > 0) {
-                    updateSelectionCount(selectedCount);
-                } else {
-                    exitSelectionMode();
-                }
-            }
-        });
-        recyclerView.setAdapter(adapter);
-    }
-
-    private void loadMessages() {
-        if (!isGuest && userId != -1) {
-            List<Message> messages = dbHelper.getAllMessagesAsList(userId);
-            adapter.updateMessages(messages);
-
-            int count = messages.size();
-            if (count == 0) {
-                tvStats.setText("No memories yet");
-            } else if (count == 1) {
-                tvStats.setText("1 memory saved");
-            } else {
-                tvStats.setText(count + " memories saved");
-            }
-        } else {
-            adapter.updateMessages(new ArrayList<>());
-            tvStats.setText("Sign in to save memories");
-        }
-    }
-
     private void logout() {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.clear();
@@ -278,12 +176,90 @@ public class HomeFragment extends Fragment {
         requireActivity().finish();
     }
 
+    private void initViews(View view) {
+        tvWelcome = view.findViewById(R.id.tvWelcome);
+        tvStats = view.findViewById(R.id.tvStats);
+        recyclerView = view.findViewById(R.id.recyclerView);
+        fabAdd = view.findViewById(R.id.fabAdd);
+
+        if (isGuest) {
+            tvWelcome.setText("Hello, Explorer!");
+            tvStats.setText("Sign in to save your own memories");
+        } else {
+            String name = userEmail.split("@")[0];
+            tvWelcome.setText("Welcome back, " + name + "!");
+        }
+    }
+
+    private void setupRecyclerView() {
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        adapter = new MessageAdapter(getContext(), new ArrayList<>(), new MessageAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(int position, int messageId) {
+                if (isGuest) {
+                    // For guest, show demo posts (but can't edit/delete)
+                    Message clickedPost = demoPosts.get(position);
+                    Toast.makeText(getContext(),
+                            "Demo Post: " + clickedPost.getTitle() + "\nSign in to create your own memories!",
+                            Toast.LENGTH_LONG).show();
+                } else {
+                    Intent intent = new Intent(getContext(), uk.ac.wlv.travelblog.activities.PostDetailActivity.class);
+                    intent.putExtra(uk.ac.wlv.travelblog.activities.PostDetailActivity.EXTRA_MESSAGE_ID, messageId);
+                    startActivity(intent);
+                    requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+                }
+            }
+
+            @Override
+            public void onItemLongClick(int position, int messageId) {
+                if (!isGuest) {
+                    Toast.makeText(getContext(), "Options for memory: " + messageId, Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onSelectionChanged(int selectedCount) {
+                // Selection mode not needed for guest
+            }
+        });
+        recyclerView.setAdapter(adapter);
+    }
+
+    private void loadMessages() {
+        if (!isGuest && userId != -1) {
+            // Real user - load only their messages
+            List<Message> messages = dbHelper.getAllMessagesAsList(userId);
+            adapter.updateMessages(messages);
+            adapter.setShowUserEmail(false); // Don't show user email
+
+            int count = messages.size();
+            if (count == 0) {
+                tvStats.setText("No memories yet. Tap + to create one!");
+            } else if (count == 1) {
+                tvStats.setText("1 memory saved");
+            } else {
+                tvStats.setText(count + " memories saved");
+            }
+        } else {
+            // Guest user - show ALL messages from ALL users
+            List<Message> allMessages = dbHelper.getAllMessagesFromAllUsers();
+
+            if (allMessages.isEmpty()) {
+                // If no messages in database, show demo posts
+                allMessages = demoPosts;
+                tvStats.setText(allMessages.size() + " featured adventures (Demo)");
+            } else {
+                tvStats.setText(allMessages.size() + " memories from travelers");
+            }
+
+            adapter.updateMessages(allMessages);
+            adapter.setShowUserEmail(true); // Show which user posted
+        }
+    }
+
     @Override
     public void onResume() {
         super.onResume();
-        if (isSelectionMode) {
-            exitSelectionMode();
-        }
         loadMessages();
     }
 }

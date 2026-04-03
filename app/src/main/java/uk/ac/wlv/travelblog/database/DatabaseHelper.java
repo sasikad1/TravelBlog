@@ -286,4 +286,43 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         return sdf.format(new Date());
     }
+    public List<Message> getAllMessagesFromAllUsers() {
+        List<Message> messages = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String query = "SELECT * FROM " + TABLE_MESSAGES
+                + " ORDER BY " + COLUMN_CREATED_DATE + " DESC";
+        Cursor cursor = db.rawQuery(query, null);
+
+        while (cursor.moveToNext()) {
+            Message message = new Message();
+            message.setId(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)));
+            message.setUserId(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_USER_ID)));
+            message.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TITLE)));
+            message.setContent(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTENT)));
+            message.setImagePath(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_IMAGE_PATH)));
+            message.setCreatedDate(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CREATED_DATE)));
+            message.setUpdatedDate(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_UPDATED_DATE)));
+            messages.add(message);
+        }
+        cursor.close();
+        db.close();
+        return messages;
+    }
+
+    // Get user email by user ID
+    public String getUserEmailById(int userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT " + COLUMN_EMAIL + " FROM " + TABLE_USERS
+                + " WHERE " + COLUMN_ID + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId)});
+
+        String email = "Unknown";
+        if (cursor.moveToFirst()) {
+            email = cursor.getString(0);
+        }
+        cursor.close();
+        db.close();
+        return email;
+    }
 }
