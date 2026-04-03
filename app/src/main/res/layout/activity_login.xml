@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="WanderLog"
-        android:textColor="#2E7D32"
+        android:textColor="#386A39"
         android:textSize="32sp"
         android:textStyle="bold" />
 
@@ -43,26 +43,26 @@
             android:orientation="vertical"
             android:padding="24dp">
 
-            <!-- Email EditText -->
+            <!-- Email EditText with new icon -->
             <EditText
                 android:id="@+id/etEmail"
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
-                android:background="#F0F0F0"
-                android:drawableStart="@android:drawable/ic_dialog_email"
+                android:background="@drawable/rounded_edittext"
+                android:drawableStart="@drawable/ic_email"
                 android:drawablePadding="10dp"
                 android:hint="Email"
                 android:inputType="textEmailAddress"
                 android:padding="12dp" />
 
-            <!-- Password EditText -->
+            <!-- Password EditText with new icon -->
             <EditText
                 android:id="@+id/etPassword"
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
                 android:layout_marginTop="12dp"
-                android:background="#F0F0F0"
-                android:drawableStart="@android:drawable/ic_lock_idle_lock"
+                android:background="@drawable/rounded_edittext"
+                android:drawableStart="@drawable/ic_lock"
                 android:drawablePadding="10dp"
                 android:hint="Password"
                 android:inputType="textPassword"
@@ -74,7 +74,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
                 android:layout_marginTop="24dp"
-                android:backgroundTint="#2E7D32"
+                android:background="@drawable/rounded_button_green"
                 android:text="Sign In"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF" />
@@ -82,14 +82,13 @@
             <!-- Continue as Guest Button -->
             <Button
                 android:id="@+id/btnContinueAsGuest"
-                style="?android:attr/borderlessButtonStyle"
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
                 android:layout_marginTop="8dp"
-                android:background="@drawable/rounded_border_button"
+                android:background="@drawable/rounded_button_outline"
                 android:text="Continue as Guest"
                 android:textAllCaps="false"
-                android:textColor="#2E7D32" />
+                android:textColor="#386A39" />
 
             <!-- Divider -->
             <View
@@ -102,13 +101,12 @@
             <!-- Create Account Button -->
             <Button
                 android:id="@+id/btnCreateAccount"
-                style="?android:attr/borderlessButtonStyle"
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
-                android:background="#F5F5F5"
+                android:background="@drawable/rounded_button_light"
                 android:text="Create New Account"
                 android:textAllCaps="false"
-                android:textColor="#2E7D32"
+                android:textColor="#386A39"
                 android:textSize="14sp" />
 
         </LinearLayout>
@@ -124,7 +122,7 @@
         android:text="Cloud sync available"
         android:textColor="#777777"
         android:textSize="12sp"
-        android:buttonTint="#2E7D32" />
+        android:buttonTint="#777777" />
 
     <!-- Error Message TextView -->
     <TextView

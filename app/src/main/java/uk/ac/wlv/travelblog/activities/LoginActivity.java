@@ -84,32 +84,63 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void loginUser() {
+        // Clear previous error
         tvError.setVisibility(android.view.View.GONE);
+
+        // Remove any existing styling
+        etEmail.setError(null);
+        etPassword.setError(null);
 
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
 
+        // ========== VALIDATION ==========
+
+        // Check if email is empty
         if (TextUtils.isEmpty(email)) {
-            showError("Email required");
+            showError("Email is required");
+            etEmail.setError("Email required");
+            etEmail.requestFocus();
             return;
         }
 
+        // Check if email is valid format
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            showError("Enter valid email");
+            showError("Please enter a valid email address");
+            etEmail.setError("Invalid email format");
+            etEmail.requestFocus();
             return;
         }
 
+        // Check if password is empty
         if (TextUtils.isEmpty(password)) {
-            showError("Password required");
+            showError("Password is required");
+            etPassword.setError("Password required");
+            etPassword.requestFocus();
             return;
         }
 
+        // Check password length
         if (password.length() < 4) {
             showError("Password must be at least 4 characters");
+            etPassword.setError("Password too short (min 4 characters)");
+            etPassword.requestFocus();
             return;
         }
 
+        // ========== CHECK IN DATABASE ==========
+
+        // Check if email exists in database
+        if (!dbHelper.isEmailExists(email)) {
+            showError("Email not found. Please register first.");
+            etEmail.setError("Email not registered");
+            etEmail.requestFocus();
+            return;
+        }
+
+        // Check if credentials are correct
         if (dbHelper.checkUser(email, password)) {
+            // Login successful
             int userId = dbHelper.getUserId(email);
 
             SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -124,7 +155,11 @@ public class LoginActivity extends AppCompatActivity {
             Toast.makeText(this, "Welcome back!", Toast.LENGTH_SHORT).show();
             navigateToMain();
         } else {
-            showError("Invalid email or password");
+            // Wrong password
+            showError("Incorrect password. Please try again.");
+            etPassword.setError("Wrong password");
+            etPassword.requestFocus();
+            etPassword.setText(""); // Clear password field for security
         }
     }
 
@@ -143,10 +178,15 @@ public class LoginActivity extends AppCompatActivity {
     private void showError(String message) {
         tvError.setText(message);
         tvError.setVisibility(android.view.View.VISIBLE);
-        tvError.postDelayed(() -> tvError.setVisibility(android.view.View.GONE), 3000);
+
+        // Auto hide after 4 seconds
+        tvError.postDelayed(() -> {
+            if (tvError != null) {
+                tvError.setVisibility(android.view.View.GONE);
+            }
+        }, 4000);
     }
 
-    // CHANGE THIS METHOD - Navigate to MainActivity instead of DashboardActivity
     private void navigateToMain() {
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
