@@ -30,8 +30,9 @@ public class ProfileFragment extends Fragment {
     private ImageView profileAvatar;
     private TextView tvUserName, tvUserStatus;
     private TextView tvTotalMemories, tvPublishedCount, tvDraftsCount;
-    private Button btnLogout;
+    private LinearLayout btnLogout;
     private View mapItem;
+
 
     // Settings dropdown
     private LinearLayout settingsHeader, settingsItems;
@@ -95,11 +96,11 @@ public class ProfileFragment extends Fragment {
         ivDropdownIcon = view.findViewById(R.id.ivDropdownIcon);
         editProfileItem = view.findViewById(R.id.editProfileItem);
 
-        // For guest, disable settings
         if (isGuest) {
             settingsHeader.setEnabled(false);
             settingsHeader.setAlpha(0.5f);
         }
+
     }
 
     private void setupDropdownAnimation() {
@@ -212,6 +213,7 @@ public class ProfileFragment extends Fragment {
 
     private void setupClickListeners() {
         // Logout Button
+
         btnLogout.setOnClickListener(v -> logout());
 
         // Travel Map Menu Item
