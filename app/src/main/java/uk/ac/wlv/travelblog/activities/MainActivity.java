@@ -14,7 +14,6 @@ import uk.ac.wlv.travelblog.R;
 import uk.ac.wlv.travelblog.fragments.HomeFragment;
 import uk.ac.wlv.travelblog.fragments.SearchFragment;
 import uk.ac.wlv.travelblog.fragments.ProfileFragment;
-
 public class MainActivity extends AppCompatActivity {
 
     private BottomNavigationView bottomNavigation;

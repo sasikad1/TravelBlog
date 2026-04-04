@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import uk.ac.wlv.travelblog.models.Message;  // Add this import if using model
+import uk.ac.wlv.travelblog.models.Message;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -134,7 +134,35 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return email;
     }
 
-    // ==================== CURRENT MESSAGE OPERATIONS (Working) ====================
+    // ========== NEW METHODS FOR EDIT PROFILE ==========
+
+    // Update user email
+    public boolean updateUserEmail(int userId, String newEmail) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_EMAIL, newEmail);
+
+        int result = db.update(TABLE_USERS, values, COLUMN_ID + " = ?",
+                new String[]{String.valueOf(userId)});
+        db.close();
+        return result > 0;
+    }
+
+    // Update user password
+    public boolean updateUserPassword(int userId, String newPassword) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_PASSWORD, newPassword);
+
+        int result = db.update(TABLE_USERS, values, COLUMN_ID + " = ?",
+                new String[]{String.valueOf(userId)});
+        db.close();
+        return result > 0;
+    }
+
+    // =================================================
+
+    // ==================== MESSAGE OPERATIONS ====================
 
     public long addMessage(int userId, String title, String content, String imagePath) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -204,9 +232,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.rawQuery(query, new String[]{String.valueOf(userId), likeQuery, likeQuery});
     }
 
-    // ==================== OPTIONAL: MESSAGE MODEL METHODS (Add if you want) ====================
+    // ==================== MESSAGE MODEL METHODS ====================
 
-    // Get single message as Message object
     public Message getMessageAsObject(int messageId) {
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT * FROM " + TABLE_MESSAGES + " WHERE " + COLUMN_ID + " = ?";
@@ -228,7 +255,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return message;
     }
 
-    // Get all messages as List of Message objects
     public List<Message> getAllMessagesAsList(int userId) {
         List<Message> messages = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -254,7 +280,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return messages;
     }
 
-    // Search messages and return as List
     public List<Message> searchMessagesAsList(int userId, String searchQuery) {
         List<Message> messages = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -282,10 +307,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return messages;
     }
 
-    private String getCurrentDateTime() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-        return sdf.format(new Date());
-    }
     public List<Message> getAllMessagesFromAllUsers() {
         List<Message> messages = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -310,7 +331,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return messages;
     }
 
-    // Get user email by user ID
     public String getUserEmailById(int userId) {
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT " + COLUMN_EMAIL + " FROM " + TABLE_USERS
@@ -324,5 +344,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return email;
+    }
+
+    private String getCurrentDateTime() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        return sdf.format(new Date());
     }
 }

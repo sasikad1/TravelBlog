@@ -63,6 +63,11 @@
             android:exported="false"
             android:theme="@style/Theme.TravelBlog.NoActionBar" />
 
+        <activity
+            android:name=".activities.EditProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TravelBlog.NoActionBar" />
+
     </application>
 
 </manifest>

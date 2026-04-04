@@ -3,18 +3,25 @@ package uk.ac.wlv.travelblog.fragments;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import java.io.File;
 import uk.ac.wlv.travelblog.R;
+import uk.ac.wlv.travelblog.activities.EditProfileActivity;
 import uk.ac.wlv.travelblog.activities.LoginActivity;
 import uk.ac.wlv.travelblog.database.DatabaseHelper;
 
@@ -24,7 +31,13 @@ public class ProfileFragment extends Fragment {
     private TextView tvUserName, tvUserStatus;
     private TextView tvTotalMemories, tvPublishedCount, tvDraftsCount;
     private Button btnLogout;
-    private View settingsItem, mapItem;
+    private View mapItem;
+
+    // Settings dropdown
+    private LinearLayout settingsHeader, settingsItems;
+    private ImageView ivDropdownIcon;
+    private View editProfileItem;
+    private boolean isDropdownOpen = false;
 
     private DatabaseHelper dbHelper;
     private SharedPreferences sharedPreferences;
@@ -62,6 +75,8 @@ public class ProfileFragment extends Fragment {
         loadProfileData();
         loadStatistics();
         setupClickListeners();
+        loadProfileImage();
+        setupDropdownAnimation();
     }
 
     private void initViews(View view) {
@@ -72,8 +87,91 @@ public class ProfileFragment extends Fragment {
         tvPublishedCount = view.findViewById(R.id.tvPublishedCount);
         tvDraftsCount = view.findViewById(R.id.tvDraftsCount);
         btnLogout = view.findViewById(R.id.btnLogout);
-        settingsItem = view.findViewById(R.id.settingsItem);
         mapItem = view.findViewById(R.id.mapItem);
+
+        // Settings dropdown views
+        settingsHeader = view.findViewById(R.id.settingsHeader);
+        settingsItems = view.findViewById(R.id.settingsItems);
+        ivDropdownIcon = view.findViewById(R.id.ivDropdownIcon);
+        editProfileItem = view.findViewById(R.id.editProfileItem);
+
+        // For guest, disable settings
+        if (isGuest) {
+            settingsHeader.setEnabled(false);
+            settingsHeader.setAlpha(0.5f);
+        }
+    }
+
+    private void setupDropdownAnimation() {
+        settingsHeader.setOnClickListener(v -> {
+            if (isGuest) {
+                Toast.makeText(getContext(), "Please sign in to access settings", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (isDropdownOpen) {
+                // Close dropdown
+                Animation slideUp = AnimationUtils.loadAnimation(getContext(), R.anim.slide_up);
+                settingsItems.startAnimation(slideUp);
+                settingsItems.setVisibility(View.GONE);
+                ivDropdownIcon.setImageResource(android.R.drawable.ic_menu_more);
+                isDropdownOpen = false;
+            } else {
+                // Open dropdown
+                settingsItems.setVisibility(View.VISIBLE);
+                Animation slideDown = AnimationUtils.loadAnimation(getContext(), R.anim.slide_down);
+                settingsItems.startAnimation(slideDown);
+                ivDropdownIcon.setImageResource(android.R.drawable.ic_menu_revert);
+                isDropdownOpen = true;
+            }
+        });
+
+        // Edit Profile item click
+        editProfileItem.setOnClickListener(v -> {
+            Intent intent = new Intent(getContext(), EditProfileActivity.class);
+            startActivity(intent);
+        });
+    }
+
+    private void loadProfileImage() {
+        String savedImagePath = sharedPreferences.getString("profileImage", null);
+        if (savedImagePath != null && !savedImagePath.isEmpty()) {
+            try {
+                File imgFile = new File(requireContext().getFilesDir(), savedImagePath);
+                if (imgFile.exists()) {
+                    Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+
+                    // Scale and crop to fit circle
+                    Bitmap roundedBitmap = getRoundedCroppedBitmap(bitmap, 200);
+                    profileAvatar.setImageBitmap(roundedBitmap);
+                } else {
+                    profileAvatar.setImageResource(android.R.drawable.sym_def_app_icon);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                profileAvatar.setImageResource(android.R.drawable.sym_def_app_icon);
+            }
+        } else {
+            profileAvatar.setImageResource(android.R.drawable.sym_def_app_icon);
+        }
+    }
+
+    private Bitmap getRoundedCroppedBitmap(Bitmap bitmap, int diameter) {
+        Bitmap output = Bitmap.createBitmap(diameter, diameter, Bitmap.Config.ARGB_8888);
+        android.graphics.Canvas canvas = new android.graphics.Canvas(output);
+
+        final int color = 0xff424242;
+        final android.graphics.Paint paint = new android.graphics.Paint();
+        final android.graphics.Rect rect = new android.graphics.Rect(0, 0, diameter, diameter);
+
+        paint.setAntiAlias(true);
+        canvas.drawARGB(0, 0, 0, 0);
+        paint.setColor(color);
+        canvas.drawCircle(diameter / 2, diameter / 2, diameter / 2, paint);
+        paint.setXfermode(new android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.SRC_IN));
+        canvas.drawBitmap(bitmap, rect, rect, paint);
+
+        return output;
     }
 
     private void loadProfileData() {
@@ -87,7 +185,6 @@ public class ProfileFragment extends Fragment {
             tvUserName.setText(name);
             tvUserStatus.setText("Online");
             tvUserStatus.setTextColor(getResources().getColor(R.color.green_500));
-            profileAvatar.setImageResource(android.R.drawable.sym_def_app_icon);
         }
     }
 
@@ -114,16 +211,10 @@ public class ProfileFragment extends Fragment {
     }
 
     private void setupClickListeners() {
+        // Logout Button
         btnLogout.setOnClickListener(v -> logout());
 
-        settingsItem.setOnClickListener(v -> {
-            if (isGuest) {
-                Toast.makeText(getContext(), "Please sign in to access settings", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getContext(), "Settings (Coming soon)", Toast.LENGTH_SHORT).show();
-            }
-        });
-
+        // Travel Map Menu Item
         mapItem.setOnClickListener(v -> {
             Toast.makeText(getContext(), "Travel Map (Coming soon)", Toast.LENGTH_SHORT).show();
         });
@@ -144,5 +235,7 @@ public class ProfileFragment extends Fragment {
     public void onResume() {
         super.onResume();
         loadStatistics();
+        loadProfileImage();
+        loadProfileData();
     }
 }
