@@ -12,6 +12,11 @@
         tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
+    <!-- ========== INTERNET PERMISSION FOR CLOUD UPLOAD ========== -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- =========================================================== -->
+
     <uses-feature android:name="android.hardware.camera"
         android:required="false" />
 
@@ -20,7 +25,8 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/Theme.TravelBlog.NoActionBar"
-        android:requestLegacyExternalStorage="true">
+        android:requestLegacyExternalStorage="true"
+        android:usesCleartextTraffic="true">
 
         <!-- Splash Activity - Launcher -->
         <activity
@@ -63,11 +69,13 @@
             android:exported="false"
             android:theme="@style/Theme.TravelBlog.NoActionBar" />
 
+        <!-- Edit Profile Activity -->
         <activity
             android:name=".activities.EditProfileActivity"
             android:exported="false"
             android:theme="@style/Theme.TravelBlog.NoActionBar" />
 
+        <!-- About Us Activity -->
         <activity
             android:name=".activities.AboutUsActivity"
             android:exported="false"

@@ -10,12 +10,14 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import java.io.File;
 import uk.ac.wlv.travelblog.R;
 import uk.ac.wlv.travelblog.database.DatabaseHelper;
 import uk.ac.wlv.travelblog.models.Message;
+import uk.ac.wlv.travelblog.utils.BloggerUploadService;
 
 public class PostDetailActivity extends AppCompatActivity {
 
@@ -35,14 +37,12 @@ public class PostDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_post_detail);
 
-        // Remove action bar
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
 
         dbHelper = new DatabaseHelper(this);
 
-        // Get message ID from intent
         messageId = getIntent().getIntExtra(EXTRA_MESSAGE_ID, -1);
 
         if (messageId == -1) {
@@ -54,6 +54,14 @@ public class PostDetailActivity extends AppCompatActivity {
         initViews();
         loadMessageData();
         setupClickListeners();
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                finish();
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+            }
+        });
     }
 
     private void initViews() {
@@ -76,14 +84,11 @@ public class PostDetailActivity extends AppCompatActivity {
             tvTitle.setText(message.getTitle());
             tvContent.setText("\"" + message.getContent() + "\"");
 
-            // Format date
             String formattedDate = formatDate(message.getCreatedDate());
             tvDate.setText(formattedDate);
 
-            // Set SQLite ID
             tvSqliteId.setText("SQLite ID: " + message.getId());
 
-            // Load image
             loadImage(message.getImagePath());
         } else {
             Toast.makeText(this, "Post not found", Toast.LENGTH_SHORT).show();
@@ -94,7 +99,6 @@ public class PostDetailActivity extends AppCompatActivity {
     private void loadImage(String imagePath) {
         if (imagePath != null && !imagePath.isEmpty()) {
             try {
-                // Case 1: File saved in app's private storage (from camera)
                 File imgFile = new File(getFilesDir(), imagePath);
                 if (imgFile.exists()) {
                     Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
@@ -103,7 +107,6 @@ public class PostDetailActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Case 2: Content URI (from gallery)
                 if (imagePath.startsWith("content://")) {
                     Uri imageUri = Uri.parse(imagePath);
                     ivPostImage.setImageURI(imageUri);
@@ -111,7 +114,6 @@ public class PostDetailActivity extends AppCompatActivity {
                     return;
                 }
 
-                // If no image found, show placeholder
                 ivPostImage.setImageResource(android.R.drawable.ic_menu_gallery);
                 ivPostImage.setVisibility(ImageView.VISIBLE);
 
@@ -121,7 +123,6 @@ public class PostDetailActivity extends AppCompatActivity {
                 ivPostImage.setVisibility(ImageView.VISIBLE);
             }
         } else {
-            // No image, show placeholder
             ivPostImage.setImageResource(android.R.drawable.ic_menu_gallery);
             ivPostImage.setVisibility(ImageView.VISIBLE);
         }
@@ -156,31 +157,169 @@ public class PostDetailActivity extends AppCompatActivity {
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
         });
 
-        // Share button
-        btnShare.setOnClickListener(v -> sharePost());
+        // ========== SHARE BUTTON - SHOW PLATFORM LIST ==========
+        btnShare.setOnClickListener(v -> showSharePlatformDialog());
+        // ======================================================
 
-        // ========== EDIT BUTTON - OPEN EDIT ACTIVITY ==========
+        // Edit button
         btnEdit.setOnClickListener(v -> {
             Intent intent = new Intent(PostDetailActivity.this, EditPostActivity.class);
             intent.putExtra(EditPostActivity.EXTRA_MESSAGE_ID, messageId);
             startActivity(intent);
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });
-        // ======================================================
 
         // Delete button
         btnDelete.setOnClickListener(v -> deletePost());
+
+        // Upload button (direct to Blogger)
+        btnUploadStatus.setOnClickListener(v -> uploadToBlogger());
     }
 
-    private void sharePost() {
-        if (message != null) {
-            String shareText = message.getTitle() + "\n\n" + message.getContent() + "\n\n- WanderLog";
-            Intent shareIntent = new Intent(Intent.ACTION_SEND);
-            shareIntent.setType("text/plain");
-            shareIntent.putExtra(Intent.EXTRA_TEXT, shareText);
-            startActivity(Intent.createChooser(shareIntent, "Share via"));
+    // ========== SHOW PLATFORM LIST DIALOG ==========
+    private void showSharePlatformDialog() {
+        String[] platforms = {
+                "Blogger",
+                "Pinterest",
+                "Google+",
+                "Twitter",
+                "Facebook",
+                "Instagram"
+        };
+
+        String[] icons = {
+                "📝", "📌", "🔴", "🐦", "📘", "📷"
+        };
+
+        // Create custom list with icons
+        String[] items = new String[platforms.length];
+        for (int i = 0; i < platforms.length; i++) {
+            items[i] = icons[i] + "  " + platforms[i];
         }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Share to...")
+                .setItems(items, (dialog, which) -> {
+                    String selectedPlatform = platforms[which];
+
+                    if (selectedPlatform.equals("Blogger")) {
+                        // Upload to Blogger
+                        uploadToBlogger();
+                    } else if (selectedPlatform.equals("Pinterest")) {
+                        shareToPinterest();
+                    } else if (selectedPlatform.equals("Google+")) {
+                        shareToGooglePlus();
+                    } else if (selectedPlatform.equals("Twitter")) {
+                        shareToTwitter();
+                    } else if (selectedPlatform.equals("Facebook")) {
+                        shareToFacebook();
+                    } else if (selectedPlatform.equals("Instagram")) {
+                        shareToInstagram();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
+
+    private void shareToPinterest() {
+        if (message == null) return;
+        String shareText = message.getTitle() + "\n\n" + message.getContent() + "\n\n- WanderLog";
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, shareText);
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, message.getTitle());
+        startActivity(Intent.createChooser(shareIntent, "Share to Pinterest"));
+    }
+
+    private void shareToGooglePlus() {
+        if (message == null) return;
+        String shareText = message.getTitle() + "\n\n" + message.getContent() + "\n\n- WanderLog";
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, shareText);
+        startActivity(Intent.createChooser(shareIntent, "Share to Google+"));
+    }
+
+    private void shareToTwitter() {
+        if (message == null) return;
+        String shareText = message.getTitle() + "\n\n" + message.getContent() + "\n\n- WanderLog";
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, shareText);
+        startActivity(Intent.createChooser(shareIntent, "Share to Twitter"));
+    }
+
+    private void shareToFacebook() {
+        if (message == null) return;
+        String shareText = message.getTitle() + "\n\n" + message.getContent() + "\n\n- WanderLog";
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, shareText);
+        startActivity(Intent.createChooser(shareIntent, "Share to Facebook"));
+    }
+
+    private void shareToInstagram() {
+        if (message == null) return;
+        // Instagram requires image sharing
+        Toast.makeText(this, "Instagram sharing requires image. Use share intent with image.", Toast.LENGTH_LONG).show();
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, message.getTitle() + "\n\n" + message.getContent());
+        startActivity(Intent.createChooser(shareIntent, "Share to Instagram"));
+    }
+    // ================================================
+
+    // ========== UPLOAD TO BLOGGER ==========
+    private void uploadToBlogger() {
+        if (message == null) {
+            Toast.makeText(this, "No post to upload", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String title = message.getTitle();
+        String content = message.getContent();
+
+        new AlertDialog.Builder(this)
+                .setTitle("Upload to Blogger")
+                .setMessage("Do you want to publish this post to your Blogger blog?\n\n" +
+                        "Title: " + title + "\n\n" +
+                        "Blog: wanderlogtravels.blogspot.com")
+                .setPositiveButton("Upload", (dialog, which) -> {
+                    BloggerUploadService uploadService = new BloggerUploadService(this);
+                    uploadService.setOnUploadListener(new BloggerUploadService.OnUploadListener() {
+                        @Override
+                        public void onSuccess(String postUrl) {
+                            runOnUiThread(() -> {
+                                btnUploadStatus.setText("Posted to Blogger");
+                                btnUploadStatus.setEnabled(false);
+
+                                new AlertDialog.Builder(PostDetailActivity.this)
+                                        .setTitle("Upload Successful!")
+                                        .setMessage("Your post has been published to Blogger!\n\n" + postUrl)
+                                        .setPositiveButton("View Post", (d, w) -> {
+                                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(postUrl));
+                                            startActivity(intent);
+                                        })
+                                        .setNegativeButton("OK", null)
+                                        .show();
+                            });
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            runOnUiThread(() -> {
+                                Toast.makeText(PostDetailActivity.this,
+                                        "Upload failed: " + error, Toast.LENGTH_LONG).show();
+                            });
+                        }
+                    });
+
+                    uploadService.authenticateAndUpload(title, content);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+    // ======================================
 
     private void deletePost() {
         new AlertDialog.Builder(this)
@@ -197,11 +336,5 @@ public class PostDetailActivity extends AppCompatActivity {
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 }

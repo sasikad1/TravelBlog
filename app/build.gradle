@@ -26,6 +26,17 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
+
+    // ========== ADD THIS PACKAGING BLOCK ==========
+    packaging {
+        resources {
+            // This resolves the META-INF/DEPENDENCIES conflict
+            pickFirsts.add("META-INF/DEPENDENCIES")
+            pickFirsts.add("META-INF/AL2.0")
+            pickFirsts.add("META-INF/LGPL2.1")
+        }
+    }
+    // =============================================
 }
 
 dependencies {
@@ -34,8 +45,6 @@ dependencies {
     implementation libs.material
     implementation libs.activity
     implementation libs.constraintlayout
-
-    // ========== ADD THESE DEPENDENCIES ==========
 
     // RecyclerView
     implementation 'androidx.recyclerview:recyclerview:1.3.2'
@@ -46,7 +55,7 @@ dependencies {
     // CoordinatorLayout (for FAB)
     implementation 'androidx.coordinatorlayout:coordinatorlayout:1.2.0'
 
-    // Glide for image loading (optional but recommended)
+    // Glide for image loading
     implementation 'com.github.bumptech.glide:glide:4.15.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
 
@@ -55,8 +64,10 @@ dependencies {
 
     implementation 'androidx.core:core-splashscreen:1.0.1'
 
-
-    // ===========================================
+    // Blogger API dependencies
+    implementation 'com.google.apis:google-api-services-blogger:v3-rev20220226-1.32.1'
+    implementation 'com.google.api-client:google-api-client:2.0.0'
+    implementation 'com.google.oauth-client:google-oauth-client-jetty:1.34.1'
 
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
