@@ -2,8 +2,8 @@ package uk.ac.wlv.travelblog.activities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
@@ -15,6 +15,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import uk.ac.wlv.travelblog.R;
 import uk.ac.wlv.travelblog.database.DatabaseHelper;
 
+import android.net.Uri;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+
 public class LoginActivity extends AppCompatActivity {
 
     private EditText etEmail, etPassword;
@@ -24,20 +28,25 @@ public class LoginActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
     private SharedPreferences sharedPreferences;
 
+    private MediaPlayer welcomeSound;  // Add MediaPlayer
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
 
-        // Remove title bar
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
 
+        setContentView(R.layout.activity_login);
+
+        // Initialize welcome sound
+        welcomeSound = MediaPlayer.create(this, R.raw.welcome_sound);
+
         dbHelper = new DatabaseHelper(this);
         sharedPreferences = getSharedPreferences("BlogAppPrefs", MODE_PRIVATE);
 
-        // Check if already logged in
         if (sharedPreferences.getBoolean("isLoggedIn", false)) {
             navigateToMain();
             return;
@@ -70,20 +79,14 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void setupFieldListeners() {
-        // Clear error when user starts typing
         etEmail.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) {
-                clearError(etEmail);
-            }
+            if (hasFocus) clearError(etEmail);
         });
 
         etPassword.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) {
-                clearError(etPassword);
-            }
+            if (hasFocus) clearError(etPassword);
         });
 
-        // Real-time validation
         etEmail.addTextChangedListener(new android.text.TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -133,45 +136,37 @@ public class LoginActivity extends AppCompatActivity {
         editor.apply();
     }
 
-    // ========== COMPLETE VALIDATION ==========
-
     private boolean validateEmail() {
         String email = etEmail.getText().toString().trim();
 
-        // Check 1: Empty email
         if (TextUtils.isEmpty(email)) {
             showFieldError(etEmail, "Email address is required");
             return false;
         }
 
-        // Check 2: Email length
         if (email.length() > 100) {
             showFieldError(etEmail, "Email address is too long (max 100 characters)");
             return false;
         }
 
-        // Check 3: Email format
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            showFieldError(etEmail, "Please enter a valid email address (e.g., name@example.com)");
+            showFieldError(etEmail, "Please enter a valid email address");
             return false;
         }
 
-        // Check 4: Email contains @ and .
         if (!email.contains("@") || !email.contains(".")) {
             showFieldError(etEmail, "Email must contain '@' and '.'");
             return false;
         }
 
-        // Check 5: Email domain exists (basic check)
         String domain = email.substring(email.indexOf("@") + 1);
         if (domain.length() < 3) {
             showFieldError(etEmail, "Invalid email domain");
             return false;
         }
 
-        // Check 6: Email exists in database
         if (!dbHelper.isEmailExists(email)) {
-            showFieldError(etEmail, "No account found with this email. Please register first.");
+            showFieldError(etEmail, "No account found. Please register first.");
             return false;
         }
 
@@ -181,25 +176,21 @@ public class LoginActivity extends AppCompatActivity {
     private boolean validatePassword() {
         String password = etPassword.getText().toString().trim();
 
-        // Check 1: Empty password
         if (TextUtils.isEmpty(password)) {
             showFieldError(etPassword, "Password is required");
             return false;
         }
 
-        // Check 2: Password length minimum
         if (password.length() < 4) {
             showFieldError(etPassword, "Password must be at least 4 characters");
             return false;
         }
 
-        // Check 3: Password length maximum
         if (password.length() > 50) {
             showFieldError(etPassword, "Password is too long (max 50 characters)");
             return false;
         }
 
-        // Check 4: Password contains only valid characters
         if (!password.matches("^[a-zA-Z0-9@#$%^&+=!._-]+$")) {
             showFieldError(etPassword, "Password contains invalid characters");
             return false;
@@ -235,7 +226,6 @@ public class LoginActivity extends AppCompatActivity {
         tvError.setText(message);
         tvError.setVisibility(View.VISIBLE);
 
-        // Auto hide after 5 seconds
         tvError.postDelayed(() -> {
             if (tvError != null && tvError.getVisibility() == View.VISIBLE) {
                 tvError.setVisibility(View.GONE);
@@ -243,33 +233,19 @@ public class LoginActivity extends AppCompatActivity {
         }, 5000);
     }
 
-    // ========== LOGIN USER ==========
-
     private void loginUser() {
-        // Clear previous errors
         hideError();
         clearError(etEmail);
         clearError(etPassword);
 
-        // Validate email
-        if (!validateEmail()) {
-            return;
-        }
-
-        // Validate password
-        if (!validatePassword()) {
-            return;
-        }
+        if (!validateEmail()) return;
+        if (!validatePassword()) return;
 
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
 
-        // Validate credentials against database
-        if (!validateCredentials(email, password)) {
-            return;
-        }
+        if (!validateCredentials(email, password)) return;
 
-        // Login successful
         int userId = dbHelper.getUserId(email);
 
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -281,9 +257,25 @@ public class LoginActivity extends AppCompatActivity {
 
         savePreferences();
 
+        // ========== PLAY WELCOME SOUND ==========
+        playWelcomeSound();
+        // ======================================
+
         Toast.makeText(this, "Welcome back, " + email.split("@")[0] + "!", Toast.LENGTH_SHORT).show();
         navigateToMain();
     }
+
+    // ========== PLAY WELCOME SOUND METHOD ==========
+    private void playWelcomeSound() {
+        try {
+            Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            Ringtone ringtone = RingtoneManager.getRingtone(getApplicationContext(), notification);
+            ringtone.play();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    // ==============================================
 
     private void continueAsGuest() {
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -303,5 +295,17 @@ public class LoginActivity extends AppCompatActivity {
         startActivity(intent);
         overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
         finish();
+    }
+
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Release MediaPlayer resources
+        if (welcomeSound != null) {
+            welcomeSound.release();
+            welcomeSound = null;
+        }
     }
 }
