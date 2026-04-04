@@ -68,6 +68,11 @@
             android:exported="false"
             android:theme="@style/Theme.TravelBlog.NoActionBar" />
 
+        <activity
+            android:name=".activities.AboutUsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TravelBlog.NoActionBar" />
+
     </application>
 
 </manifest>

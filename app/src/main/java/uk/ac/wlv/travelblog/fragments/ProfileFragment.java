@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -21,6 +20,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import java.io.File;
 import uk.ac.wlv.travelblog.R;
+import uk.ac.wlv.travelblog.activities.AboutUsActivity;
 import uk.ac.wlv.travelblog.activities.EditProfileActivity;
 import uk.ac.wlv.travelblog.activities.LoginActivity;
 import uk.ac.wlv.travelblog.database.DatabaseHelper;
@@ -32,7 +32,7 @@ public class ProfileFragment extends Fragment {
     private TextView tvTotalMemories, tvPublishedCount, tvDraftsCount;
     private LinearLayout btnLogout;
     private View mapItem;
-
+    private View aboutUsItem;  // Added About Us reference
 
     // Settings dropdown
     private LinearLayout settingsHeader, settingsItems;
@@ -89,6 +89,7 @@ public class ProfileFragment extends Fragment {
         tvDraftsCount = view.findViewById(R.id.tvDraftsCount);
         btnLogout = view.findViewById(R.id.btnLogout);
         mapItem = view.findViewById(R.id.mapItem);
+        aboutUsItem = view.findViewById(R.id.aboutUsItem);  // Initialize About Us
 
         // Settings dropdown views
         settingsHeader = view.findViewById(R.id.settingsHeader);
@@ -100,7 +101,6 @@ public class ProfileFragment extends Fragment {
             settingsHeader.setEnabled(false);
             settingsHeader.setAlpha(0.5f);
         }
-
     }
 
     private void setupDropdownAnimation() {
@@ -213,13 +213,19 @@ public class ProfileFragment extends Fragment {
 
     private void setupClickListeners() {
         // Logout Button
-
         btnLogout.setOnClickListener(v -> logout());
 
         // Travel Map Menu Item
         mapItem.setOnClickListener(v -> {
             Toast.makeText(getContext(), "Travel Map (Coming soon)", Toast.LENGTH_SHORT).show();
         });
+
+        // ========== ABOUT US BUTTON CLICK LISTENER ==========
+        aboutUsItem.setOnClickListener(v -> {
+            Intent intent = new Intent(getContext(), AboutUsActivity.class);
+            startActivity(intent);
+        });
+        // ===================================================
     }
 
     private void logout() {

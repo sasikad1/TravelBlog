@@ -25,12 +25,11 @@
                 android:gravity="center"
                 android:orientation="vertical">
 
-                <!-- Profile Image with Edit Button - ROUND VERSION -->
+                <!-- Profile Image with Edit Button -->
                 <RelativeLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
 
-                    <!-- CardView for round profile image -->
                     <androidx.cardview.widget.CardView
                         android:id="@+id/profileImageCard"
                         android:layout_width="100dp"
@@ -48,7 +47,6 @@
 
                     </androidx.cardview.widget.CardView>
 
-                    <!-- Edit Profile Picture Button -->
                     <ImageButton
                         android:id="@+id/btnEditProfilePic"
                         android:layout_width="32dp"
@@ -112,7 +110,6 @@
                         android:layout_marginTop="20dp"
                         android:weightSum="3">
 
-                        <!-- Total Memories -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -138,7 +135,6 @@
                                 android:layout_marginTop="4dp" />
                         </LinearLayout>
 
-                        <!-- Published -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -164,7 +160,6 @@
                                 android:layout_marginTop="4dp" />
                         </LinearLayout>
 
-                        <!-- Drafts -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -216,7 +211,6 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
 
-                        <!-- Settings Header -->
                         <LinearLayout
                             android:id="@+id/settingsHeader"
                             android:layout_width="match_parent"
@@ -250,7 +244,6 @@
                                 app:tint="#757575" />
                         </LinearLayout>
 
-                        <!-- Settings Items (Only Edit Profile) -->
                         <LinearLayout
                             android:id="@+id/settingsItems"
                             android:layout_width="match_parent"
@@ -258,7 +251,6 @@
                             android:orientation="vertical"
                             android:visibility="gone">
 
-                            <!-- Edit Profile Option -->
                             <LinearLayout
                                 android:id="@+id/editProfileItem"
                                 android:layout_width="match_parent"
@@ -333,6 +325,50 @@
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
+
+            <!-- ========== ABOUT US BUTTON ========== -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="15dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:id="@+id/aboutUsItem"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:gravity="center_vertical"
+                    android:background="?android:attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@android:drawable/ic_menu_info_details"
+                        app:tint="#2E7D32" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="16dp"
+                        android:text="About Us"
+                        android:textColor="#333333"
+                        android:textSize="16sp" />
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_forward"
+                        app:tint="#757575" />
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+            <!-- =================================== -->
 
             <!-- Logout Button -->
             <LinearLayout
