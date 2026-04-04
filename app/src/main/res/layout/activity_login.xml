@@ -103,7 +103,7 @@
                     android:background="#E0E0E0" />
 
                 <!-- Create Account Button -->
-                <Button
+                <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/btnCreateAccount"
                     android:layout_width="match_parent"
                     android:layout_height="55dp"

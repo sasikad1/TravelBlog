@@ -100,7 +100,7 @@
                 android:background="#E0E0E0" />
 
             <!-- Back to Login Button with rounded corners -->
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnBackToLogin"
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
